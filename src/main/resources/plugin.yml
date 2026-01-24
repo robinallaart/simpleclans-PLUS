@@ -2,7 +2,7 @@ name: simpleclans-PLUS
 main: simpleclans.simpleclans.SimpleclansPlugin
 version: 1.0.0
 api-version: 1.21
-author: [Robin]
+author: [Robin] #My name has to stay here you can add your own name like this [Robin, Yourname]
 depend: [PlaceholderAPI]
 
 commands:
@@ -22,6 +22,6 @@ commands:
       /clan promote <player> - Promote a clan member.
       /clan demote <player> - Demote a clan member.
       /clan disband - Disband a clan.
-    permission: simpleclans.user
+    permission: simpleclans.use
     permission-message: You do not have permission to use this command.
 

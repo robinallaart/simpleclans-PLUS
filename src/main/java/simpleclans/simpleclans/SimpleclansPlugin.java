@@ -35,7 +35,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
             getLogger().warning("§1NO placeholderAPI found, placeholders won't work.");
         }
 
-        // Clan commands
+        
         getCommand("clan").setExecutor((sender, command, label, args) -> {
             if (!(sender instanceof Player player)) {
                 sender.sendMessage("§cOnly players can use this command.");
