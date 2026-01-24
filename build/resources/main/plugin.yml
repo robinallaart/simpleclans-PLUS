@@ -33,3 +33,7 @@ commands:
     description: Send a message to your clan
     usage: /<command>
     permission: simpleclans.use
+  clanlist:
+    description: Lists all clans
+    usage: /clanlist
+    permission: simpleclans.use
