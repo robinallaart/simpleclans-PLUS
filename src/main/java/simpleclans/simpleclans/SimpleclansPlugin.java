@@ -1,198 +1,41 @@
-package Gekko.Gekko;
+package simpleclans.simpleclans;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
-import org.bukkit.World;
-import org.bukkit.WorldBorder;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.TabCompleter;
+
+import java.sql.*;
+import java.util.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.*;
-import java.util.HashMap;
-import java.util.UUID;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-
-
-public class BorderPlugin extends JavaPlugin implements Listener {
-
-    private final HashMap<UUID, Long> playTimes = new HashMap<>();
-    private final HashMap<UUID, Long> lastCheck = new HashMap<>();
-    private final HashMap<UUID, Long> borderExpansions = new HashMap<>();
-    private double maxBorderSize;
-    private double expandAmount;
-    private long intervalMs;
-    private boolean friendlyFireEnabled;
-
+public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
     private Connection connection;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
-
-        FileConfiguration config = getConfig();
         reloadConfig();
-        maxBorderSize = config.getDouble("max-border-size", 10000.0);
-        expandAmount = config.getDouble("expand-amount", 8.0);
-        int intervalMinutes = config.getInt("expand-interval-minutes", 60);
-        friendlyFireEnabled = getConfig().getBoolean("friendly-fire", false);
-
-
-        intervalMs = intervalMinutes * 60 * 1000L;
-
-
-
 
         connectDatabase();
-        createTable();
-
-
-        Bukkit.getPluginManager().registerEvents(this, this);
-
-
-        Bukkit.getScheduler().runTaskTimer(this, this::updatePlaytime, 20L, 20L);
-
+        createTables();
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            new BorderPlaceholder(this).register();
-            getLogger().info("§1[GekkoGames] PlaceholderAPI Activated!");
+            new ClanPlaceholder(this).register();
+            getLogger().info("§1PlaceholderAPI Activated!");
         } else {
-            getLogger().warning("§1[GekkoGames] NO placeholderAPI found, placeholders won't work.");
+            getLogger().warning("§1NO placeholderAPI found, placeholders won't work.");
         }
 
-
-        getCommand("GekkoGamesReload").setExecutor((sender, command, label, args) -> {
-            if (!sender.hasPermission("borderplugin.admin")) {
-                sender.sendMessage("§1[GekkoGames] §cYou do not have permission to use this command!");
-                return true;
-            }
-
-
-            reloadConfig();
-            saveDefaultConfig();
-
-
-            FileConfiguration config = getConfig();
-            maxBorderSize = config.getDouble("max-border-size", 10000.0);
-            expandAmount = config.getDouble("expand-amount", 8.0);
-            int intervalMinutes = config.getInt("expand-interval-minutes", 60);
-            intervalMs = intervalMinutes * 60 * 1000L;
-            friendlyFireEnabled = config.getBoolean("friendly-fire", false);
-
-            sender.sendMessage("§1[GekkoGames] §aconfiguration reloaded successfully!");
-            getLogger().info(sender.getName() + " reloaded the BorderPlugin configuration.");
-            return true;
-        });
-
-
-
-
-        getCommand("playtime").setExecutor((sender, command, label, args) -> {
-            if (args.length == 0) {
-                if (sender instanceof Player player) {
-                    long liveTime = getLivePlaytime(player.getUniqueId());
-                    sender.sendMessage("§1[GekkoGames] §aYour playtime: §e" + formatTime(liveTime));
-                    checkBorderExpansion(player);
-                } else {
-                    sender.sendMessage("§1[GekkoGames] §cSpecify a player!");
-                }
-                return true;
-            }
-
-            Player target = Bukkit.getPlayerExact(args[0]);
-            if (target == null) {
-                sender.sendMessage("§1[GekkoGames] §cPlayer not found!");
-                return true;
-            }
-
-            long liveTime = getLivePlaytime(target.getUniqueId());
-            sender.sendMessage("§1[GekkoGames] §a" + target.getName() + "'s playtime: §e" + formatTime(liveTime));
-            checkBorderExpansion(target);
-            return true;
-        });
-
-        getCommand("kills").setExecutor((sender, command, label, args) -> {
-            if (args.length == 0) {
-                if (sender instanceof Player player) {
-                    int kills = getKills(player.getUniqueId());
-                    sender.sendMessage("§1[GekkoGames] §aYour kills: §e" + kills);
-                } else {
-                    sender.sendMessage("§1[GekkoGames] §cYou must specify a player!");
-                }
-                return true;
-            }
-
-            Player target = Bukkit.getPlayerExact(args[0]);
-            if (target == null) {
-                sender.sendMessage("§1[GekkoGames] §cPlayer not found!");
-                return true;
-            }
-
-            int kills = getKills(target.getUniqueId());
-            sender.sendMessage("§1[GekkoGames] §a" + target.getName() + "'s kills: §e" + kills);
-            return true;
-        });
-
-        getCommand("killleaderboard").setExecutor((sender, command, label, args) -> {
-            sender.sendMessage("§6===== Kill Leaderboard =====");
-
-            try (Statement stmt = connection.createStatement()) {
-                ResultSet rs = stmt.executeQuery(
-                        "SELECT uuid, kills FROM kills ORDER BY kills DESC LIMIT 10"
-                );
-
-                int rank = 1;
-                while (rs.next()) {
-                    UUID uuid = UUID.fromString(rs.getString("uuid"));
-                    int kills = rs.getInt("kills");
-
-                    Player online = Bukkit.getPlayer(uuid);
-                    String name = (online != null) ? online.getName() : Bukkit.getOfflinePlayer(uuid).getName();
-
-                    sender.sendMessage("§e#" + rank + " §a" + name + " §7- §b" + kills + " kills");
-                    rank++;
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                sender.sendMessage("§1[GekkoGames] §cAn error occurred while fetching the leaderboard!");
-            }
-
-            return true;
-        });
-
-        getCommand("deaths").setExecutor((sender, command, label, args) -> {
-            if (args.length == 0) {
-                if (sender instanceof Player player) {
-                    int deaths = getDeaths(player.getUniqueId());
-                    sender.sendMessage("§1[GekkoGames] §aYour deaths: §e" + deaths);
-                } else {
-                    sender.sendMessage("§1[GekkoGames] §cYou must specify a player!");
-                }
-                return true;
-            }
-
-            Player target = Bukkit.getPlayerExact(args[0]);
-            if (target == null) {
-                sender.sendMessage("§1[GekkoGames] §cPlayer not found!");
-                return true;
-            }
-
-            int deaths = getDeaths(target.getUniqueId());
-            sender.sendMessage("§1[GekkoGames] §a" + target.getName() + "'s deaths: §e" + deaths);
-            return true;
-        });
-
-        
+        // Clan commands
         getCommand("clan").setExecutor((sender, command, label, args) -> {
             if (!(sender instanceof Player player)) {
                 sender.sendMessage("§cOnly players can use this command.");
@@ -458,7 +301,6 @@ public class BorderPlugin extends JavaPlugin implements Listener {
 
             return true;
         });
-
         getCommand("clan").setTabCompleter((sender, command, alias, args) -> {
             List<String> completions = new ArrayList<>();
 
@@ -483,97 +325,11 @@ public class BorderPlugin extends JavaPlugin implements Listener {
 
             return Collections.emptyList();
         });
-
-
-
-        getCommand("deathleaderboard").setExecutor((sender, command, label, args) -> {
-            sender.sendMessage("§6===== Death Leaderboard =====");
-
-            try (Statement stmt = connection.createStatement()) {
-                ResultSet rs = stmt.executeQuery(
-                        "SELECT uuid, deaths FROM deaths ORDER BY deaths DESC LIMIT 10"
-                );
-
-                int rank = 1;
-                while (rs.next()) {
-                    UUID uuid = UUID.fromString(rs.getString("uuid"));
-                    int deaths = rs.getInt("deaths");
-
-                    Player online = Bukkit.getPlayer(uuid);
-                    String name = (online != null) ? online.getName() : Bukkit.getOfflinePlayer(uuid).getName();
-
-                    sender.sendMessage("§e#" + rank + " §a" + name + " §7- §c" + deaths + " deaths");
-                    rank++;
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                sender.sendMessage("§1[GekkoGames] §cAn error occurred while fetching the leaderboard!");
-            }
-
-            return true;
-        });
-
-        getCommand("testplaceholders").setExecutor((sender, command, label, args) -> {
-            if (!(sender instanceof Player player)) {
-                sender.sendMessage("§cOnly players can use this command!");
-                return true;
-            }
-
-            sender.sendMessage("§6===== Placeholder Test =====");
-            sender.sendMessage("§eBorder size: §f" + String.format("%.0f", getCurrentBorderSize()));
-
-            String clan = getClanOf(player.getUniqueId());
-            sender.sendMessage("§eClan: §f" + (clan != null ? clan : "No Clan"));
-            sender.sendMessage("§eClan Level: §f" + (clan != null ? getClanLevel(clan) : 0));
-            sender.sendMessage("§eClan Role: §f" + (getRoleOf(player.getUniqueId()) != null ? getRoleOf(player.getUniqueId()) : "None"));
-            sender.sendMessage("§eClan Kills: §f" + (clan != null ? getClanKills(clan) : 0));
-            sender.sendMessage("§6============================");
-            return true;
-        });
-
-        
-        getCommand("playtimeleaderboard").setExecutor((sender, command, label, args) -> {
-            sender.sendMessage("§6===== Playtime Leaderboard =====");
-
-            try (Statement stmt = connection.createStatement()) {
-                ResultSet rs = stmt.executeQuery(
-                        "SELECT uuid, playtime FROM playtimes ORDER BY playtime DESC LIMIT 10"
-                );
-
-                int rank = 1;
-                while (rs.next()) {
-                    UUID uuid = UUID.fromString(rs.getString("uuid"));
-                    long storedPlaytime = rs.getLong("playtime");
-
-                    long livePlaytime = storedPlaytime;
-                    if (lastCheck.containsKey(uuid)) {
-                        livePlaytime += System.currentTimeMillis() - lastCheck.get(uuid);
-                    }
-
-                    Player onlinePlayer = Bukkit.getPlayer(uuid);
-                    String name = onlinePlayer != null ? onlinePlayer.getName() :
-                            Bukkit.getOfflinePlayer(uuid).getName();
-
-                    sender.sendMessage("§e#" + rank + " §a" + name + " §7- §b" + formatTime(livePlaytime));
-                    rank++;
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                sender.sendMessage("§1[GekkoGames] §cAn error occurred while fetching the leaderboard!");
-            }
-
-            return true;
-        });
-
-        getLogger().info("§1[GekkoGames] BorderPlugin is enabled!");
     }
 
     @Override
     public void onDisable() {
-        for (UUID uuid : playTimes.keySet()) {
-            savePlaytime(uuid, getLivePlaytime(uuid));
-        }
-        getLogger().info("§1[GekkoGames] BorderPlugin is disabled!");
+        getLogger().info("§1[GekkoGames] ClanPlugin is disabled!");
         try {
             if (connection != null && !connection.isClosed()) connection.close();
         } catch (SQLException e) {
@@ -581,202 +337,17 @@ public class BorderPlugin extends JavaPlugin implements Listener {
         }
     }
 
-
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        UUID uuid = player.getUniqueId();
-
-        long dbTime = getPlaytime(uuid);
-        playTimes.put(uuid, dbTime);
-        lastCheck.put(uuid, System.currentTimeMillis());
-
-
-        long expansionsDone = dbTime / intervalMs;
-        borderExpansions.put(uuid, expansionsDone);
-    }
-    @EventHandler
-    public void onPlayerDeath(org.bukkit.event.entity.PlayerDeathEvent event) {
-        Player victim = event.getEntity();
-        Player killer = victim.getKiller();
-
-
-        UUID victimId = victim.getUniqueId();
-        int deaths = getDeaths(victimId) + 1;
-        saveDeaths(victimId, deaths);
-        victim.sendMessage("§1[GekkoGames] §cYou died! §7Total deaths: §e" + deaths);
-
-        if (killer != null && killer != victim) {
-            String clan = getClanOf(killer.getUniqueId());
-            if (clan != null) {
-                int clanKills = getClanKills(clan) + 1;
-                updateClanKills(clan, clanKills);
-                killer.sendMessage("§1[GekkoGames] §aYour clan gained §e1 §akill! (Total: " + clanKills + ")");
-            }
-        }
-
-        if (killer != null && killer != victim) {
-            UUID killerId = killer.getUniqueId();
-            int kills = getKills(killerId) + 1;
-            saveKills(killerId, kills);
-            killer.sendMessage("§1[GekkoGames] §aYou killed §e" + victim.getName() + "§a! Total kills: §e" + kills);
-        }
-    }
-    @EventHandler
-    public void onClanFriendlyFire(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
-        // Alleen spelers kunnen geraakt worden
-        if (!(event.getEntity() instanceof Player victim)) return;
-
-        Player attacker = null;
-
-        // Direct melee hit
-        if (event.getDamager() instanceof Player p) {
-            attacker = p;
-        }
-
-        // Projectile (pijl, sneeuwbal, etc.)
-        else if (event.getDamager() instanceof org.bukkit.entity.Projectile projectile)
-            if (projectile.getShooter() instanceof Player shooter) {
-                attacker = shooter;
-            }
-        
-
-        if (attacker == null) return;
-
-        // === Clan checks ===
-        String victimClan = getClanOf(victim.getUniqueId());
-        String attackerClan = getClanOf(attacker.getUniqueId());
-
-        // Als friendly fire uitstaat en spelers in dezelfde clan zitten → cancel
-        if (!friendlyFireEnabled && victimClan != null && victimClan.equals(attackerClan)) {
-            event.setCancelled(true);
-            attacker.sendMessage("§1[GekkoGames] §cYou cannot attack your clan members!");
-        }
-    }
-
-
-
-
-    private long getLivePlaytime(UUID uuid) {
-        long stored = playTimes.getOrDefault(uuid, getPlaytime(uuid));
-        long last = lastCheck.getOrDefault(uuid, System.currentTimeMillis());
-        return stored + (System.currentTimeMillis() - last);
-    }
-
-    private void saveKills(UUID uuid, int kills) {
-        try (PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO kills(uuid, kills) VALUES(?, ?) " +
-                        "ON CONFLICT(uuid) DO UPDATE SET kills = ?")) {
-            ps.setString(1, uuid.toString());
-            ps.setInt(2, kills);
-            ps.setInt(3, kills);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    private int getKills(UUID uuid) {
-        try (PreparedStatement ps = connection.prepareStatement("SELECT kills FROM kills WHERE uuid = ?")) {
-            ps.setString(1, uuid.toString());
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("kills");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    private void checkBorderExpansion(Player player) {
-        UUID uuid = player.getUniqueId();
-
-        long liveTime = getLivePlaytime(uuid);
-        long expansionsDone = borderExpansions.getOrDefault(uuid, 0L);
-        long expectedExpansions = liveTime / intervalMs;
-
-        if (expectedExpansions > expansionsDone) {
-            long toExpand = expectedExpansions - expansionsDone;
-            for (int i = 0; i < toExpand; i++) {
-                expandBorder(player.getWorld());
-            }
-            borderExpansions.put(uuid, expectedExpansions);
-
-
-            lastCheck.put(uuid, System.currentTimeMillis());
-            playTimes.put(uuid, liveTime);
-            savePlaytime(uuid, liveTime);
-        }
-    }
-
-    private void updatePlaytime() {
-        long now = System.currentTimeMillis();
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            UUID uuid = player.getUniqueId();
-
-            long last = lastCheck.getOrDefault(uuid, now);
-            lastCheck.put(uuid, now);
-
-            long stored = playTimes.getOrDefault(uuid, getPlaytime(uuid));
-            playTimes.put(uuid, stored + (now - last));
-
-            checkBorderExpansion(player);
-            savePlaytime(uuid, playTimes.get(uuid));
-        }
-    }
-
-    private String formatTime(long ms) {
-        long totalSeconds = ms / 1000;
-        long hours = totalSeconds / 3600;
-        long minutes = (totalSeconds % 3600) / 60;
-        long seconds = totalSeconds % 60;
-        return String.format("%02dh %02dm %02ds", hours, minutes, seconds);
-    }
-
-
-    private void expandBorder(World world) {
-        WorldBorder border = world.getWorldBorder();
-        double newSize = Math.min(border.getSize() + expandAmount, maxBorderSize);
-
-        if (border.getSize() < maxBorderSize) {
-            border.setSize(newSize);
-            Bukkit.broadcastMessage("§1[GekkoGames] §aThe worldborder expanded to §e" + (int) newSize + " §ablocks!");
-        } else {
-            border.setSize(maxBorderSize);
-            Bukkit.broadcastMessage("§1[GekkoGames] §eThe worldborder reached the max: §c" + (int) maxBorderSize + " blocks!");
-        }
-    }
-
-    public double getCurrentBorderSize() {
-        World world = Bukkit.getWorlds().get(0);
-        return world.getWorldBorder().getSize();
-    }
-
-
     private void connectDatabase() {
         try {
             Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection("jdbc:sqlite:" + getDataFolder() + "/playtime.db");
+            connection = DriverManager.getConnection("jdbc:sqlite:" + getDataFolder() + "/database.db");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void createTable() {
+    private void createTables() {
         try (Statement stmt = connection.createStatement()) {
-            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS playtimes (" +
-                    "uuid TEXT PRIMARY KEY," +
-                    "playtime LONG)");
-
-            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS kills (" +
-                    "uuid TEXT PRIMARY KEY," +
-                    "kills INTEGER)");
-
-            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS deaths (" +
-                    "uuid TEXT PRIMARY KEY," +
-                    "deaths INTEGER)");
             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS clans (" +
                     "name TEXT PRIMARY KEY," +
                     "leader TEXT," +
@@ -792,20 +363,17 @@ public class BorderPlugin extends JavaPlugin implements Listener {
                     "target_uuid TEXT," +
                     "clan_name TEXT," +
                     "inviter_uuid TEXT)");
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-
-    private void createClan(String name, UUID leader) {
+    public void createClan(String name, UUID leader) {
         try (PreparedStatement ps = connection.prepareStatement(
                 "INSERT INTO clans(name, leader, kills, level) VALUES(?, ?, 0, 1)")) {
             ps.setString(1, name);
             ps.setString(2, leader.toString());
             ps.executeUpdate();
-
 
             addMemberToClan(leader, name, "LEADER");
         } catch (SQLException e) {
@@ -813,7 +381,7 @@ public class BorderPlugin extends JavaPlugin implements Listener {
         }
     }
 
-    private void addMemberToClan(UUID uuid, String clan, String role) {
+    public void addMemberToClan(UUID uuid, String clan, String role) {
         try (PreparedStatement ps = connection.prepareStatement(
                 "INSERT OR REPLACE INTO clan_members(uuid, clan, role) VALUES(?, ?, ?)")) {
             ps.setString(1, uuid.toString());
@@ -825,7 +393,7 @@ public class BorderPlugin extends JavaPlugin implements Listener {
         }
     }
 
-    private String getClanOf(UUID uuid) {
+    public String getClanOf(UUID uuid) {
         try (PreparedStatement ps = connection.prepareStatement("SELECT clan FROM clan_members WHERE uuid = ?")) {
             ps.setString(1, uuid.toString());
             ResultSet rs = ps.executeQuery();
@@ -836,7 +404,7 @@ public class BorderPlugin extends JavaPlugin implements Listener {
         return null;
     }
 
-    private String getRoleOf(UUID uuid) {
+    public String getRoleOf(UUID uuid) {
         try (PreparedStatement ps = connection.prepareStatement("SELECT role FROM clan_members WHERE uuid = ?")) {
             ps.setString(1, uuid.toString());
             ResultSet rs = ps.executeQuery();
@@ -847,7 +415,7 @@ public class BorderPlugin extends JavaPlugin implements Listener {
         return null;
     }
 
-    private void updateClanKills(String clan, int kills) {
+    public void updateClanKills(String clan, int kills) {
         try (PreparedStatement ps = connection.prepareStatement(
                 "UPDATE clans SET kills = ?, level = (? / 5) + 1 WHERE name = ?")) {
             ps.setInt(1, kills);
@@ -859,7 +427,7 @@ public class BorderPlugin extends JavaPlugin implements Listener {
         }
     }
 
-    private int getClanKills(String clan) {
+    public int getClanKills(String clan) {
         try (PreparedStatement ps = connection.prepareStatement("SELECT kills FROM clans WHERE name = ?")) {
             ps.setString(1, clan);
             ResultSet rs = ps.executeQuery();
@@ -870,7 +438,7 @@ public class BorderPlugin extends JavaPlugin implements Listener {
         return 0;
     }
 
-    private int getClanLevel(String clan) {
+    public int getClanLevel(String clan) {
         try (PreparedStatement ps = connection.prepareStatement("SELECT level FROM clans WHERE name = ?")) {
             ps.setString(1, clan);
             ResultSet rs = ps.executeQuery();
@@ -881,110 +449,39 @@ public class BorderPlugin extends JavaPlugin implements Listener {
         return 1;
     }
 
-    private void saveDeaths(UUID uuid, int deaths) {
-        try (PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO deaths(uuid, deaths) VALUES(?, ?) " +
-                        "ON CONFLICT(uuid) DO UPDATE SET deaths = ?")) {
-            ps.setString(1, uuid.toString());
-            ps.setInt(2, deaths);
-            ps.setInt(3, deaths);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private int getDeaths(UUID uuid) {
-        try (PreparedStatement ps = connection.prepareStatement("SELECT deaths FROM deaths WHERE uuid = ?")) {
-            ps.setString(1, uuid.toString());
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("deaths");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    private void savePlaytime(UUID uuid, long time) {
-        try (PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO playtimes(uuid, playtime) VALUES(?, ?) " +
-                        "ON CONFLICT(uuid) DO UPDATE SET playtime = ?")) {
-            ps.setString(1, uuid.toString());
-            ps.setLong(2, time);
-            ps.setLong(3, time);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private java.util.List<String> getAllClanNames() {
-        java.util.List<String> clans = new java.util.ArrayList<>();
+    public List<String> getAllClanNames() {
+        List<String> clans = new ArrayList<>();
         try (Statement stmt = connection.createStatement()) {
             ResultSet rs = stmt.executeQuery("SELECT name FROM clans");
-            while (rs.next()) {
-                clans.add(rs.getString("name"));
-            }
+            while (rs.next()) clans.add(rs.getString("name"));
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return clans;
     }
 
-    private long getPlaytime(UUID uuid) {
-        try (PreparedStatement ps = connection.prepareStatement("SELECT playtime FROM playtimes WHERE uuid = ?")) {
-            ps.setString(1, uuid.toString());
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getLong("playtime");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0L;
-    }
+    class ClanPlaceholder extends PlaceholderExpansion {
+        private final SimpleclansPlugin plugin;
 
-
-    class BorderPlaceholder extends PlaceholderExpansion {
-        private final BorderPlugin plugin;
-
-        public BorderPlaceholder(BorderPlugin plugin) {
+        public ClanPlaceholder(SimpleclansPlugin plugin) {
             this.plugin = plugin;
         }
 
         @Override
-        public @NotNull String getIdentifier() {
-            return "Gekko";
-        }
+        public @NotNull String getIdentifier() { return "Gekko"; }
 
         @Override
-        public @NotNull String getAuthor() {
-            return "[Robin]";
-        }
+        public @NotNull String getAuthor() { return "[Robin]"; }
 
         @Override
-        public @NotNull String getVersion() {
-            return plugin.getDescription().getVersion();
-        }
+        public @NotNull String getVersion() { return plugin.getDescription().getVersion(); }
 
         @Override
-        public boolean persist() {
-            return true;
-        }
+        public boolean persist() { return true; }
 
         @Override
         public @Nullable String onRequest(OfflinePlayer player, @NotNull String identifier) {
-            if (identifier.equalsIgnoreCase("current_size")) {
-                double size = plugin.getCurrentBorderSize();
-                return String.format("%.0f", size);
-            }
             if (identifier.equalsIgnoreCase("clan_name")) {
-                String clan = plugin.getClanOf(player.getUniqueId());
-                return clan != null ? clan : "No Clan";
-            }
-            if (identifier.equalsIgnoreCase("clan_level")) {
                 String clan = plugin.getClanOf(player.getUniqueId());
                 return clan != null ? clan : "No Clan";
             }
@@ -992,11 +489,14 @@ public class BorderPlugin extends JavaPlugin implements Listener {
                 String role = plugin.getRoleOf(player.getUniqueId());
                 return role != null ? role : "None";
             }
+            if (identifier.equalsIgnoreCase("clan_level")) {
+                String clan = plugin.getClanOf(player.getUniqueId());
+                return clan != null ? String.valueOf(plugin.getClanLevel(clan)) : "0";
+            }
             if (identifier.equalsIgnoreCase("clan_kills")) {
                 String clan = plugin.getClanOf(player.getUniqueId());
-                return clan != null ? clan : "No Clan";
+                return clan != null ? String.valueOf(plugin.getClanKills(clan)) : "0";
             }
-
             return null;
         }
     }
