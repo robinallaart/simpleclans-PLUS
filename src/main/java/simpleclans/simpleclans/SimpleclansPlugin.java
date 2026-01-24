@@ -30,22 +30,22 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new ClanPlaceholder(this).register();
-            getLogger().info("§1PlaceholderAPI Activated!");
+            getLogger().info("[Simpleclan-PLUS] PlaceholderAPI Activated!");
         } else {
-            getLogger().warning("§1NO placeholderAPI found, placeholders won't work.");
+            getLogger().warning("[Simpleclan-PLUS]NO placeholderAPI found, placeholders won't work.");
         }
 
         
         getCommand("clan").setExecutor((sender, command, label, args) -> {
             if (!(sender instanceof Player player)) {
-                sender.sendMessage("§cOnly players can use this command.");
+                sender.sendMessage("§6[Simpleclan-PLUS] §cOnly players can use this command.");
                 return true;
             }
 
             UUID uuid = player.getUniqueId();
 
             if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-                player.sendMessage("§6===== §1[GekkoGames] §fClan Commands =====");
+                player.sendMessage("§6===== §6[Simpleclan-PLUS] §fClan Commands =====");
                 player.sendMessage("§e/clan create <name> §7- Create a new clan.");
                 player.sendMessage("§e/clan invite <player> §7- Invite a player to your clan.");
                 player.sendMessage("§e/clan join <name> §7- Join a clan you were invited to.");
@@ -62,43 +62,43 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
             switch (sub) {
                 case "create" -> {
                     if (args.length < 2) {
-                        player.sendMessage("§cUsage: /clan create <name>");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan create <name>");
                         return true;
                     }
                     if (getClanOf(uuid) != null) {
-                        player.sendMessage("§cYou are already in a clan!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cYou are already in a clan!");
                         return true;
                     }
                     String clanName = args[1];
                     createClan(clanName, uuid);
-                    player.sendMessage("§1[GekkoGames] §aClan §e" + clanName + " §ahas been created!");
+                    player.sendMessage("§6[Simpleclan-PLUS] §aClan §e" + clanName + " §ahas been created!");
                 }
 
                 case "invite" -> {
                     if (args.length < 2) {
-                        player.sendMessage("§cUsage: /clan invite <player>");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan invite <player>");
                         return true;
                     }
                     String clan = getClanOf(uuid);
                     if (clan == null) {
-                        player.sendMessage("§cYou are not in a clan!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
                         return true;
                     }
                     String role = getRoleOf(uuid);
                     if (!role.equalsIgnoreCase("LEADER") && !role.equalsIgnoreCase("CO-LEADER")) {
-                        player.sendMessage("§cOnly leaders or co-leaders can invite players!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cOnly leaders or co-leaders can invite players!");
                         return true;
                     }
 
                     Player target = Bukkit.getPlayerExact(args[1]);
                     if (target == null) {
-                        player.sendMessage("§cPlayer not found!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
                         return true;
                     }
 
                     UUID targetId = target.getUniqueId();
                     if (getClanOf(targetId) != null) {
-                        player.sendMessage("§cThat player is already in a clan!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cThat player is already in a clan!");
                         return true;
                     }
 
@@ -112,13 +112,13 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         e.printStackTrace();
                     }
 
-                    player.sendMessage("§aYou invited §e" + target.getName() + " §ato join §b" + clan + "§a!");
-                    target.sendMessage("§1[GekkoGames] §aYou have been invited to join §b" + clan + "§a! Type §e/clan join " + clan + " §ato accept.");
+                    player.sendMessage("§6[Simpleclan-PLUS] §aYou invited §e" + target.getName() + " §ato join §b" + clan + "§a!");
+                    target.sendMessage("§6[Simpleclan-PLUS] §aYou have been invited to join §b" + clan + "§a! Type §e/clan join " + clan + " §ato accept.");
                 }
 
                 case "join" -> {
                     if (args.length < 2) {
-                        player.sendMessage("§cUsage: /clan join <name>");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan join <name>");
                         return true;
                     }
                     String clanName = args[1];
@@ -129,7 +129,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         ps.setString(2, clanName);
                         ResultSet rs = ps.executeQuery();
                         if (!rs.next()) {
-                            player.sendMessage("§cYou have not been invited to this clan!");
+                            player.sendMessage("§6[Simpleclan-PLUS] §cYou have not been invited to this clan!");
                             return true;
                         }
                     } catch (SQLException e) {
@@ -146,29 +146,29 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         e.printStackTrace();
                     }
 
-                    player.sendMessage("§1[GekkoGames] §aYou have joined §b" + clanName + "§a!");
+                    player.sendMessage("§6[Simpleclan-PLUS] §aYou have joined §b" + clanName + "§a!");
                 }
 
                 case "leave" -> {
                     String clan = getClanOf(uuid);
                     if (clan == null) {
-                        player.sendMessage("§cYou are not in a clan!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
                         return true;
                     }
                     addMemberToClan(uuid, null, null);
-                    player.sendMessage("§1[GekkoGames] §7You left the clan §e" + clan);
+                    player.sendMessage("§6[Simpleclan-PLUS] §7You left the clan §e" + clan);
                 }
 
                 case "info" -> {
                     String clan = args.length > 1 ? args[1] : getClanOf(uuid);
                     if (clan == null) {
-                        player.sendMessage("§cYou are not in a clan!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
                         return true;
                     }
                     int level = getClanLevel(clan);
                     int kills = getClanKills(clan);
 
-                    player.sendMessage("§6===== Clan Info =====");
+                    player.sendMessage("§6=====[Simpleclan-PLUS] Clan Info =====");
                     player.sendMessage("§eName: §f" + clan);
                     player.sendMessage("§eLevel: §f" + level);
                     player.sendMessage("§eKills: §f" + kills);
@@ -176,28 +176,28 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
                 case "promote" -> {
                     if (args.length < 2) {
-                        player.sendMessage("§cUsage: /clan promote <player>");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan promote <player>");
                         return true;
                     }
                     String clan = getClanOf(uuid);
                     if (clan == null) {
-                        player.sendMessage("§cYou are not in a clan!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
                         return true;
                     }
                     String role = getRoleOf(uuid);
                     if (!role.equalsIgnoreCase("LEADER") && !role.equalsIgnoreCase("CO-LEADER")) {
-                        player.sendMessage("§cYou do not have permission to promote!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cYou do not have permission to promote!");
                         return true;
                     }
 
                     Player target = Bukkit.getPlayerExact(args[1]);
                     if (target == null) {
-                        player.sendMessage("§cPlayer not found!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
                         return true;
                     }
                     UUID targetId = target.getUniqueId();
                     if (!clan.equals(getClanOf(targetId))) {
-                        player.sendMessage("§cThat player is not in your clan!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cThat player is not in your clan!");
                         return true;
                     }
 
@@ -209,24 +209,24 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     };
 
                     if (newRole == null) {
-                        player.sendMessage("§cThat player cannot be promoted further!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cThat player cannot be promoted further!");
                         return true;
                     }
 
                     addMemberToClan(targetId, clan, newRole);
-                    player.sendMessage("§aYou promoted §e" + target.getName() + " §ato §b" + newRole);
-                    target.sendMessage("§1[GekkoGames] §aYou have been promoted to §b" + newRole);
+                    player.sendMessage("§6[Simpleclan-PLUS] §aYou promoted §e" + target.getName() + " §ato §b" + newRole);
+                    target.sendMessage("§6[Simpleclan-PLUS] §aYou have been promoted to §b" + newRole);
                 }
                 case "disband" -> {
                     String clan = getClanOf(uuid);
                     if (clan == null) {
-                        player.sendMessage("§cYou are not in a clan!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
                         return true;
                     }
 
                     String role = getRoleOf(uuid);
                     if (!"LEADER".equalsIgnoreCase(role)) {
-                        player.sendMessage("§cOnly the clan leader can disband the clan!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cOnly the clan leader can disband the clan!");
                         return true;
                     }
 
@@ -236,7 +236,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         ps.executeUpdate();
                     } catch (SQLException e) {
                         e.printStackTrace();
-                        player.sendMessage("§cAn error occurred while disbanding the clan!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cAn error occurred while disbanding the clan!");
                         return true;
                     }
 
@@ -248,34 +248,34 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         e.printStackTrace();
                     }
 
-                    player.sendMessage("§1[GekkoGames] §aYou have disbanded the clan §e" + clan + "§a!");
-                    Bukkit.broadcastMessage("§1[GekkoGames] §cThe clan §e" + clan + " §chas been disbanded!");
+                    player.sendMessage("§6[Simpleclan-PLUS] §aYou have disbanded the clan §e" + clan + "§a!");
+                    Bukkit.broadcastMessage("§6[Simpleclan-PLUS] §cThe clan §e" + clan + " §chas been disbanded!");
                 }
 
                 case "demote" -> {
                     if (args.length < 2) {
-                        player.sendMessage("§cUsage: /clan demote <player>");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan demote <player>");
                         return true;
                     }
                     String clan = getClanOf(uuid);
                     if (clan == null) {
-                        player.sendMessage("§cYou are not in a clan!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
                         return true;
                     }
                     String role = getRoleOf(uuid);
                     if (!role.equalsIgnoreCase("LEADER") && !role.equalsIgnoreCase("CO-LEADER")) {
-                        player.sendMessage("§cYou do not have permission to demote!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cYou do not have permission to demote!");
                         return true;
                     }
 
                     Player target = Bukkit.getPlayerExact(args[1]);
                     if (target == null) {
-                        player.sendMessage("§cPlayer not found!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
                         return true;
                     }
                     UUID targetId = target.getUniqueId();
                     if (!clan.equals(getClanOf(targetId))) {
-                        player.sendMessage("§cThat player is not in your clan!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cThat player is not in your clan!");
                         return true;
                     }
 
@@ -287,16 +287,16 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     };
 
                     if (newRole == null) {
-                        player.sendMessage("§cThat player cannot be demoted further!");
+                        player.sendMessage("§6[Simpleclan-PLUS] §cThat player cannot be demoted further!");
                         return true;
                     }
 
                     addMemberToClan(targetId, clan, newRole);
-                    player.sendMessage("§aYou demoted §e" + target.getName() + " §ato §b" + newRole);
-                    target.sendMessage("§1[GekkoGames] §cYou have been demoted to §b" + newRole);
+                    player.sendMessage("§6[Simpleclan-PLUS] §aYou demoted §e" + target.getName() + " §ato §b" + newRole);
+                    target.sendMessage("§6[Simpleclan-PLUS] §cYou have been demoted to §b" + newRole);
                 }
 
-                default -> player.sendMessage("§cUnknown subcommand. Use /clan help");
+                default -> player.sendMessage("§6[Simpleclan-PLUS] §cUnknown subcommand. Use /clan help");
             }
 
             return true;
@@ -329,7 +329,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        getLogger().info("§1[GekkoGames] ClanPlugin is disabled!");
+        getLogger().info("[Simpleclan-PLUS] ClanPlugin is disabled!");
         try {
             if (connection != null && !connection.isClosed()) connection.close();
         } catch (SQLException e) {
@@ -468,7 +468,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         }
 
         @Override
-        public @NotNull String getIdentifier() { return "Gekko"; }
+        public @NotNull String getIdentifier() { return "simpleclans"; }
 
         @Override
         public @NotNull String getAuthor() { return "[Robin]"; }
