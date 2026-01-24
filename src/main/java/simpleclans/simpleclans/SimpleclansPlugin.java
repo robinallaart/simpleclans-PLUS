@@ -105,6 +105,9 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                 player.sendMessage("§e/clan info [name] §7- View info about a clan.");
                 player.sendMessage("§e/clan promote <player> §7- Promote a member.");
                 player.sendMessage("§e/clan demote <player> §7- Demote a member.");
+                player.sendMessage("§e/clanchatmsg §7- Send a single message in clanchat.");
+                player.sendMessage("§e/clanchat §7- Toggle clan chat.");
+                player.sendMessage("§e/clanlist §7- shows a clan list.");
                 player.sendMessage("§6=======================================");
                 return true;
             }
