@@ -52,39 +52,39 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         });
 
         getCommand("clanchatmsg").setExecutor((sender, command, label, args) -> {
-            if (!(sender instanceof Player player)) {
-                sender.sendMessage("§6[Simpleclan-PLUS] §cOnly players can use this command.");
-                return true;
-            }
-            if (args.length == 0) {
-                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan chat <message>");
-                return true;
-            }
-            String clan = getClanOf(player.getUniqueId());
-            if (clan == null) {
-                player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
-                return true;
-            }
-            String msg = String.join(" ", args);
-            for (Map.Entry<UUID, String> member : getClanMembers(clan).entrySet()) {
-                Player target = Bukkit.getPlayer(member.getKey());
-                if (target != null) {
-                    target.sendMessage("§6[Clan] §e" + player.getName() + "§f: " + msg);
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage("§6[Simpleclan-PLUS] §cOnly players can use this command.");
+                    return true;
                 }
-            }
-            return true;
+                if (args.length == 0) {
+                    player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan chat <message>");
+                    return true;
+                }
+                String clan = getClanOf(player.getUniqueId());
+                if (clan == null) {
+                    player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
+                    return true;
+                }
+                String msg = String.join(" ", args);
+                for (Map.Entry<UUID, String> member : getClanMembers(clan).entrySet()) {
+                    Player target = Bukkit.getPlayer(member.getKey());
+                    if (target != null) {
+                        target.sendMessage("§6[Clan] §e" + player.getName() + "§f: " + msg);
+                    }
+                }
+                return true;
         });
 
         getCommand("clanchat").setExecutor((sender, command, label, args) -> {
-            if (!(sender instanceof Player player)) {
-                sender.sendMessage("§6[Simpleclan-PLUS] §cOnly players can use this command.");
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage("§6[Simpleclan-PLUS] §cOnly players can use this command.");
+                    return true;
+                }
+                UUID uuid = player.getUniqueId();
+                boolean toggled = clanChatToggled.getOrDefault(uuid, false);
+                clanChatToggled.put(uuid, !toggled);
+                player.sendMessage("§6[Simpleclan-PLUS] §aClan chat " + (!toggled ? "enabled" : "disabled"));
                 return true;
-            }
-            UUID uuid = player.getUniqueId();
-            boolean toggled = clanChatToggled.getOrDefault(uuid, false);
-            clanChatToggled.put(uuid, !toggled);
-            player.sendMessage("§6[Simpleclan-PLUS] §aClan chat " + (!toggled ? "enabled" : "disabled"));
-            return true;
         });
 
 
@@ -487,24 +487,29 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
 
-        if (clanChatToggled.getOrDefault(uuid, false)) {
-            event.setCancelled(true); // voorkomt dat bericht naar wereld gaat
+        // Check of clan chat aan staat
+        if (!clanChatToggled.getOrDefault(uuid, false)) {
+            return; // gewone chat, niks doen
+        }
 
-            String clan = getClanOf(uuid);
-            if (clan == null) {
-                player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
-                return;
-            }
+        event.setCancelled(true); // voorkomt dat het naar public chat gaat
 
-            String msg = event.getMessage();
-            for (Map.Entry<UUID, String> member : getClanMembers(clan).entrySet()) {
-                Player target = Bukkit.getPlayer(member.getKey());
-                if (target != null) {
-                    target.sendMessage("§6[Clan] §e" + player.getName() + "§f: " + msg);
-                }
+        String clan = getClanOf(uuid);
+        if (clan == null) {
+            player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
+            return;
+        }
+
+        String msg = event.getMessage();
+
+        for (Map.Entry<UUID, String> member : getClanMembers(clan).entrySet()) {
+            Player target = Bukkit.getPlayer(member.getKey());
+            if (target != null && target.isOnline()) {
+                target.sendMessage("§6[Clan] §e" + player.getName() + "§f: " + msg);
             }
         }
     }
+
 
     public void updateClanKills(String clan, int kills) {
         try (PreparedStatement ps = connection.prepareStatement(
