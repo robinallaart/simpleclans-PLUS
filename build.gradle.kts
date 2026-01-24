@@ -36,6 +36,19 @@ tasks {
     withType<JavaCompile> {
         options.encoding = "UTF-8"
         options.release.set(21)
+        // ✅ Enable preview features for compilation
+        options.compilerArgs.add("--enable-preview")
+    }
+
+    withType<Test> {
+        // ✅ Enable preview features at runtime for tests
+        useJUnitPlatform()
+        jvmArgs("--enable-preview")
+    }
+
+    withType<JavaExec> {
+        // ✅ Enable preview features when running JavaExec tasks
+        jvmArgs("--enable-preview")
     }
 
     jar {
