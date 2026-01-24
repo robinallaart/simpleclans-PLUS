@@ -9,12 +9,15 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import java.sql.*;
 import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+private final Map<UUID, Boolean> clanChatToggled = new HashMap<>();
 
 public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
@@ -24,7 +27,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
     public void onEnable() {
         saveDefaultConfig();
         reloadConfig();
-
+        Bukkit.getPluginManager().registerEvents(this, this);
         connectDatabase();
         createTables();
 
@@ -34,8 +37,57 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         } else {
             getLogger().warning("[Simpleclan-PLUS]NO placeholderAPI found, placeholders won't work.");
         }
+        getCommand("clanlist").setExecutor((sender, command, label, args) -> {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage("§6[Simpleclan-PLUS] §cOnly players can use this command.");
+                return true;
+            }
 
-        
+            player.sendMessage("§6===== Online Players & Clans =====");
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                String clan = getClanOf(p.getUniqueId());
+                player.sendMessage("§e" + p.getName() + " §7- Clan: " + (clan != null ? clan : "None"));
+            }
+            return true;
+        });
+
+        getCommand("clanchatmsg").setExecutor((sender, command, label, args) -> {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage("§6[Simpleclan-PLUS] §cOnly players can use this command.");
+                return true;
+            }
+            if (args.length == 0) {
+                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan chat <message>");
+                return true;
+            }
+            String clan = getClanOf(player.getUniqueId());
+            if (clan == null) {
+                player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
+                return true;
+            }
+            String msg = String.join(" ", args);
+            for (Map.Entry<UUID, String> member : getClanMembers(clan).entrySet()) {
+                Player target = Bukkit.getPlayer(member.getKey());
+                if (target != null) {
+                    target.sendMessage("§6[Clan] §e" + player.getName() + "§f: " + msg);
+                }
+            }
+            return true;
+        });
+
+        getCommand("clanchat").setExecutor((sender, command, label, args) -> {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage("§6[Simpleclan-PLUS] §cOnly players can use this command.");
+                return true;
+            }
+            UUID uuid = player.getUniqueId();
+            boolean toggled = clanChatToggled.getOrDefault(uuid, false);
+            clanChatToggled.put(uuid, !toggled);
+            player.sendMessage("§6[Simpleclan-PLUS] §aClan chat " + (!toggled ? "enabled" : "disabled"));
+            return true;
+        });
+
+
         getCommand("clan").setExecutor((sender, command, label, args) -> {
             if (!(sender instanceof Player player)) {
                 sender.sendMessage("§6[Simpleclan-PLUS] §cOnly players can use this command.");
@@ -107,6 +159,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         ps.setString(1, targetId.toString());
                         ps.setString(2, clan);
                         ps.setString(3, uuid.toString());
+                        ps.setLong(4, System.currentTimeMillis());
                         ps.executeUpdate();
                     } catch (SQLException e) {
                         e.printStackTrace();
@@ -130,6 +183,17 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         ResultSet rs = ps.executeQuery();
                         if (!rs.next()) {
                             player.sendMessage("§6[Simpleclan-PLUS] §cYou have not been invited to this clan!");
+                            return true;
+                        }
+                        long timestamp = rs.getLong("timestamp");
+                        if (System.currentTimeMillis() - timestamp > 5 * 60 * 1000) { // 5 minuten
+                            player.sendMessage("§6[Simpleclan-PLUS] §cYour invitation has expired!");
+                            try (PreparedStatement delete = connection.prepareStatement(
+                                    "DELETE FROM clan_invites WHERE target_uuid = ? AND clan_name = ?")) {
+                                delete.setString(1, uuid.toString());
+                                delete.setString(2, clanName);
+                                delete.executeUpdate();
+                            }
                             return true;
                         }
                     } catch (SQLException e) {
@@ -358,6 +422,11 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     "uuid TEXT PRIMARY KEY," +
                     "clan TEXT," +
                     "role TEXT)");
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS clan_invites (" +
+                    "target_uuid TEXT," +
+                    "clan_name TEXT," +
+                    "inviter_uuid TEXT," +
+                    "timestamp INTEGER DEFAULT (strftime('%s','now')))");
 
             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS clan_invites (" +
                     "target_uuid TEXT," +
@@ -414,6 +483,28 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         }
         return null;
     }
+    public void onPlayerChat(AsyncPlayerChatEvent event) {
+        Player player = event.getPlayer();
+        UUID uuid = player.getUniqueId();
+
+        if (clanChatToggled.getOrDefault(uuid, false)) {
+            event.setCancelled(true); // voorkomt dat bericht naar wereld gaat
+
+            String clan = getClanOf(uuid);
+            if (clan == null) {
+                player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
+                return;
+            }
+
+            String msg = event.getMessage();
+            for (Map.Entry<UUID, String> member : getClanMembers(clan).entrySet()) {
+                Player target = Bukkit.getPlayer(member.getKey());
+                if (target != null) {
+                    target.sendMessage("§6[Clan] §e" + player.getName() + "§f: " + msg);
+                }
+            }
+        }
+    }
 
     public void updateClanKills(String clan, int kills) {
         try (PreparedStatement ps = connection.prepareStatement(
@@ -437,6 +528,24 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         }
         return 0;
     }
+    public int getClanMemberCount(String clan) {
+        try (PreparedStatement ps = connection.prepareStatement(
+                "SELECT COUNT(*) AS total FROM clan_members WHERE clan = ?")) {
+            ps.setString(1, clan);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt("total");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    public int getOnlineClanMembers(String clan) {
+        int count = 0;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (clan.equals(getClanOf(player.getUniqueId()))) count++;
+        }
+        return count;
+    }
 
     public int getClanLevel(String clan) {
         try (PreparedStatement ps = connection.prepareStatement("SELECT level FROM clans WHERE name = ?")) {
@@ -448,6 +557,35 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         }
         return 1;
     }
+    public Map<UUID, String> getClanMembers(String clan) {
+        Map<UUID, String> members = new HashMap<>();
+        try (PreparedStatement ps = connection.prepareStatement("SELECT uuid, role FROM clan_members WHERE clan = ?")) {
+            ps.setString(1, clan);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                members.put(UUID.fromString(rs.getString("uuid")), rs.getString("role"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return members;
+    }
+    public String getClanLeader(String clan) {
+        try (PreparedStatement ps = connection.prepareStatement(
+                "SELECT leader FROM clans WHERE name = ?")) {
+            ps.setString(1, clan);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                UUID leaderUUID = UUID.fromString(rs.getString("leader"));
+                OfflinePlayer leaderPlayer = Bukkit.getOfflinePlayer(leaderUUID);
+                return leaderPlayer.getName();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "None";
+    }
+
 
     public List<String> getAllClanNames() {
         List<String> clans = new ArrayList<>();
@@ -497,6 +635,21 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                 String clan = plugin.getClanOf(player.getUniqueId());
                 return clan != null ? String.valueOf(plugin.getClanKills(clan)) : "0";
             }
+            if (identifier.equalsIgnoreCase("member_count")) {
+                String clan = plugin.getClanOf(player.getUniqueId());
+                return clan != null ? String.valueOf(plugin.getClanMemberCount(clan)) : "0";
+            }
+
+            if (identifier.equalsIgnoreCase("online_members")) {
+                String clan = plugin.getClanOf(player.getUniqueId());
+                return clan != null ? String.valueOf(plugin.getOnlineClanMembers(clan)) : "0";
+            }
+
+            if (identifier.equalsIgnoreCase("clan_leader")) {
+                String clan = plugin.getClanOf(player.getUniqueId());
+                return clan != null ? plugin.getClanLeader(clan) : "None";
+            }
+
             return null;
         }
     }
