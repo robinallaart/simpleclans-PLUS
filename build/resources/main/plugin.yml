@@ -1,5 +1,5 @@
-name: Gekko-BorderPlugin
-main: Gekko.Gekko.BorderPlugin
+name: simpleclans-PLUS
+main: simpleclans.simpleclans.SimpleclansPlugin
 version: 1.0.0
 api-version: 1.21
 author: [Robin]
