@@ -232,14 +232,33 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
                         return true;
                     }
+
                     int level = getClanLevel(clan);
                     int kills = getClanKills(clan);
+                    Map<UUID, String> members = getClanMembers(clan);
 
-                    player.sendMessage("§6=====[Simpleclan-PLUS] Clan Info =====");
-                    player.sendMessage("§eName: §f" + clan);
+                    player.sendMessage("§6===== §eClan Info §6===== ");
+                    player.sendMessage("§eClan Name: §f" + clan);
                     player.sendMessage("§eLevel: §f" + level);
                     player.sendMessage("§eKills: §f" + kills);
+                    player.sendMessage("§eMembers: ");
+
+                    for (Map.Entry<UUID, String> entry : members.entrySet()) {
+                        UUID memberUUID = entry.getKey();
+                        String role = entry.getValue();
+                        OfflinePlayer member = Bukkit.getOfflinePlayer(memberUUID);
+
+                        boolean online = member.isOnline();
+                        String color = online ? "§a" : "§c";
+                        String status = online ? "§7(Online)" : "§7(Offline)";
+
+                        player.sendMessage(color + " - " + member.getName() + " §8[" + role + "] " + status);
+                    }
+
+                    player.sendMessage("§6=========================");
+                    return true;
                 }
+
 
                 case "promote" -> {
                     if (args.length < 2) {
@@ -490,12 +509,12 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
 
-        // Check of clan chat aan staat
+        
         if (!clanChatToggled.getOrDefault(uuid, false)) {
-            return; // gewone chat, niks doen
+            return; 
         }
 
-        event.setCancelled(true); // voorkomt dat het naar public chat gaat
+        event.setCancelled(true);
 
         String clan = getClanOf(uuid);
         if (clan == null) {
