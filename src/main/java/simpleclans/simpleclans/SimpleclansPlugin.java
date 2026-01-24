@@ -17,12 +17,12 @@ import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-private final Map<UUID, Boolean> clanChatToggled = new HashMap<>();
+
 
 public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
     private Connection connection;
-
+    private final Map<UUID, Boolean> clanChatToggled = new HashMap<>();
     @Override
     public void onEnable() {
         saveDefaultConfig();
