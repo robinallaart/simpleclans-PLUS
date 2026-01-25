@@ -1,7 +1,7 @@
 name: simpleclans-PLUS
 main: simpleclans.simpleclans.SimpleclansPlugin
-version: 1.1.0
-api-version: 1.17
+version: 1.1.1
+api-version: 1.21
 author: [Robin] #My name has to stay here you can add your own name like this [Robin, Yourname]
 depend: [PlaceholderAPI]
 
