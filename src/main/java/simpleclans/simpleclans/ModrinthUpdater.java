@@ -45,7 +45,7 @@ public class ModrinthUpdater {
 
                 if (!currentVersion.equalsIgnoreCase(latestVersion)) {
                     plugin.getLogger().info("===========================================");
-                    plugin.getLogger().info("[SimpleClans-PLUS] Update available!");
+                    plugin.getLogger().info("Update available!");
                     plugin.getLogger().info("Current version: v" + currentVersion);
                     plugin.getLogger().info("Latest version:  v" + latestVersion);
                     plugin.getLogger().info("===========================================");
@@ -54,10 +54,10 @@ public class ModrinthUpdater {
                             .getJSONObject(0)
                             .getString("url");
 
-                    plugin.getLogger().info("[SimpleClans-PLUS] Downloading update...");
+                    plugin.getLogger().info("Downloading update...");
                     downloadUpdate(downloadUrl);
                 } else {
-                    plugin.getLogger().info("[SimpleClans-PLUS] You are running the latest version (v" + currentVersion + ")");
+                    plugin.getLogger().info("You are running the latest version (v" + currentVersion + ")");
                 }
 
             } catch (Exception e) {
@@ -86,8 +86,8 @@ public class ModrinthUpdater {
                 }
             }
 
-            plugin.getLogger().info("[SimpleClans-PLUS] Update downloaded successfully!");
-            plugin.getLogger().info("[SimpleClans-PLUS] The new version will be installed on the next server restart.");
+            plugin.getLogger().info("Update downloaded successfully!");
+            plugin.getLogger().info("The new version will be installed on the next server restart.");
         } catch (Exception e) {
             plugin.getLogger().warning("[Updater] Failed to download update: " + e.getMessage());
         }
