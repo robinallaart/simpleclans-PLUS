@@ -1,54 +1,60 @@
 plugins {
-    id 'java'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    // Java plugin
+    java
+    // GradleUp Shadow plugin voor fat/uber JAR
+    id("com.gradleup.shadow") version "9.3.1"
 }
 
-group = 'simpleclans.simpleclans'
-version = '1.1.0'
+group = "simpleclans"
+version = "1.1.1"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
 repositories {
+    // Maven central voor JSON en annotations
     mavenCentral()
-    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
-    maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
 }
 
 dependencies {
-    compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
-    compileOnly 'me.clip:placeholderapi:2.11.6'
-    compileOnly 'org.jetbrains:annotations:24.1.0'
+    // Spigot API (pas de versie aan als je een andere serverversie hebt)
+    compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT")
 
-    // Je pre-relocated json jar
-    implementation files('libs/simpleclans-json.jar')
+    // PlaceholderAPI lokaal uit libs/
+    compileOnly(files("libs/PlaceholderAPI-2.11.6.jar"))
+
+    // JSON library
+    implementation("org.json:json:20230227")
+
+    // JetBrains annotations
+    compileOnly("org.jetbrains:annotations:24.0.1")
 }
 
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-    options.release = 21
-    options.compilerArgs += ['--enable-preview']
+tasks {
+    // ShadowJar configuratie
+    named<com.gradleup.shadow.tasks.ShadowJar>("shadowJar") {
+        archiveBaseName.set("SimpleClansPlugin")
+        archiveVersion.set(version.toString())
+        archiveClassifier.set("") // verwijder -all suffix
+
+        // Optioneel: packages relocaten
+        relocate("org.json", "simpleclans.libs.org.json")
+
+        // Include dependencies if needed
+        mergeServiceFiles()
+    }
+
+    // Build moet shadowJar uitvoeren
+    build {
+        dependsOn(shadowJar)
+    }
 }
 
-tasks.withType(Test) {
-    useJUnitPlatform()
-    jvmArgs('--enable-preview')
-}
-
-tasks.withType(JavaExec) {
-    jvmArgs('--enable-preview')
-}
-
-tasks.processResources {
-    expand(version: project.version)
-}
-
-shadowJar {
-    archiveBaseName.set('SimpleclansPlugin')
-    archiveVersion.set(version.toString())
-    mergeServiceFiles()
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+// Optioneel: Java compile options
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+    options.release.set(17)
 }
