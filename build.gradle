@@ -1,0 +1,54 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = 'simpleclans.simpleclans'
+version = '1.1.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+    maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT'
+    compileOnly 'me.clip:placeholderapi:2.11.6'
+    compileOnly 'org.jetbrains:annotations:24.1.0'
+
+    // Je pre-relocated json jar
+    implementation files('libs/simpleclans-json.jar')
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.release = 21
+    options.compilerArgs += ['--enable-preview']
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+    jvmArgs('--enable-preview')
+}
+
+tasks.withType(JavaExec) {
+    jvmArgs('--enable-preview')
+}
+
+tasks.processResources {
+    expand(version: project.version)
+}
+
+shadowJar {
+    archiveBaseName.set('SimpleclansPlugin')
+    archiveVersion.set(version.toString())
+    mergeServiceFiles()
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
