@@ -2,59 +2,41 @@ plugins {
     id("java")
     id("com.gradleup.shadow") version "9.3.1"
 }
-
 group = "simpleclans"
 version = "1.1.1"
-
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
-
 repositories {
-    mavenCentral()
-
-    // ✅ Spigot API repo
+    mavenCentral()  
     maven {
         name = "SpigotMC"
         url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
     }
-
-    // Optional backup (PaperMC or others)
     maven {
         name = "Sonatype"
         url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
     }
 }
-
 dependencies {
+    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT")
     compileOnly(files("libs/PlaceholderAPI-2.11.6.jar"))
-
-    // ✅ Use the real JSON jar you have locally
     implementation(files("libs/json-20230618.jar"))
-
     compileOnly("org.jetbrains:annotations:24.0.1")
 }
-
-
 tasks.named("shadowJar") {
-    archiveBaseName.set("SimpleClansPlugin")
+    archiveBaseName.set("simpleclans-PLUS")
     archiveVersion.set(project.version.toString())
     archiveClassifier.set("")
-
-    // ✅ relocate JSON to avoid conflicts
     relocate("org.json", "simpleclans.libs.org.json")
-
     mergeServiceFiles()
 }
-
-
 tasks.named("build") {
     dependsOn(tasks.named("shadowJar"))
 }
-
 tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
     options.release = 21
