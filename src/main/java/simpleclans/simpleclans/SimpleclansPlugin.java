@@ -30,6 +30,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(this, this);
         connectDatabase();
         createTables();
+        new ModrinthUpdater(this, "simpleclans-plus").checkForUpdates();
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new ClanPlaceholder(this).register();
