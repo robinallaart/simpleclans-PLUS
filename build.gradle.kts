@@ -1,5 +1,6 @@
 plugins {
     `java`
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 java {
@@ -38,23 +39,28 @@ tasks {
     withType<JavaCompile> {
         options.encoding = "UTF-8"
         options.release.set(21)
-        // ✅ Enable preview features for compilation
         options.compilerArgs.add("--enable-preview")
     }
 
     withType<Test> {
-        // ✅ Enable preview features at runtime for tests
         useJUnitPlatform()
         jvmArgs("--enable-preview")
     }
 
     withType<JavaExec> {
-        // ✅ Enable preview features when running JavaExec tasks
         jvmArgs("--enable-preview")
     }
 
     jar {
         archiveBaseName.set("SimpleclansPlugin")
         archiveVersion.set(version.toString())
+    }
+    shadowJar {
+        archiveBaseName.set("SimpleclansPlugin")
+        archiveVersion.set(version.toString())
+        relocate("org.json", "simpleclans.libs.org.json")
+        mergeServiceFiles()
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
     }
 }
