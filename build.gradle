@@ -1,7 +1,5 @@
 plugins {
-    // Java plugin
-    java
-    // GradleUp Shadow plugin voor fat/uber JAR
+    id("java")
     id("com.gradleup.shadow") version "9.3.1"
 }
 
@@ -10,51 +8,54 @@ version = "1.1.1"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
 repositories {
-    // Maven central voor JSON en annotations
     mavenCentral()
+
+    // ✅ Spigot API repo
+    maven {
+        name = "SpigotMC"
+        url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+    }
+
+    // Optional backup (PaperMC or others)
+    maven {
+        name = "Sonatype"
+        url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+    }
 }
 
 dependencies {
-    // Spigot API (pas de versie aan als je een andere serverversie hebt)
     compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT")
-
-    // PlaceholderAPI lokaal uit libs/
     compileOnly(files("libs/PlaceholderAPI-2.11.6.jar"))
 
-    // JSON library
-    implementation("org.json:json:20230227")
+    // ✅ Use the real JSON jar you have locally
+    implementation(files("libs/json-20230618.jar"))
 
-    // JetBrains annotations
     compileOnly("org.jetbrains:annotations:24.0.1")
 }
 
-tasks {
-    // ShadowJar configuratie
-    named<com.gradleup.shadow.tasks.ShadowJar>("shadowJar") {
-        archiveBaseName.set("SimpleClansPlugin")
-        archiveVersion.set(version.toString())
-        archiveClassifier.set("") // verwijder -all suffix
 
-        // Optioneel: packages relocaten
-        relocate("org.json", "simpleclans.libs.org.json")
+tasks.named("shadowJar") {
+    archiveBaseName.set("SimpleClansPlugin")
+    archiveVersion.set(project.version.toString())
+    archiveClassifier.set("")
 
-        // Include dependencies if needed
-        mergeServiceFiles()
-    }
+    // ✅ relocate JSON to avoid conflicts
+    relocate("org.json", "simpleclans.libs.org.json")
 
-    // Build moet shadowJar uitvoeren
-    build {
-        dependsOn(shadowJar)
-    }
+    mergeServiceFiles()
 }
 
-// Optioneel: Java compile options
-tasks.withType<JavaCompile> {
+
+tasks.named("build") {
+    dependsOn(tasks.named("shadowJar"))
+}
+
+tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
-    options.release.set(17)
+    options.release = 21
 }
