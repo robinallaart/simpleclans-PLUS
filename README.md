@@ -58,6 +58,7 @@ Designed for **performance**, **simplicity**, and **modern Minecraft compatibili
 | `/clan promote <player>` | Promote a clan member |
 | `/clan demote <player>` | Demote a clan member |
 | `/clan disband` | Disband your clan |
+| `/clan update` | Updates to the newsest version. (auto download) |
 | `/clanchat` | Toggle clan chat mode |
 | `/clanchatmsg <message>` | Send a single clan message |
 | `/clanlist` | Display all players and clans |
