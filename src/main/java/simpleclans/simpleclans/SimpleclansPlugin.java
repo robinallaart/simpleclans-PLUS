@@ -11,7 +11,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bstats.bukkit.Metrics;
 
 import java.sql.*;
 import java.util.*;
@@ -36,8 +35,6 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         updater = new ModrinthUpdater(this, "simpleclans-plus");
         updater.checkForUpdates();
         Bukkit.getPluginManager().registerEvents(new UpdateNotifyListener(updater), this);
-        int pluginId = 29079;
-        Metrics metrics = new Metrics(this, pluginId);
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new ClanPlaceholder(this).register();
@@ -75,18 +72,23 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
             switch (sub) {
                 case "create" -> {
-                    if (args.length < 2) {
-                        player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan create <name>");
-                        return true;
-                    }
-                    if (getClanOf(uuid) != null) {
-                        player.sendMessage("§6[Simpleclan-PLUS] §cYou are already in a clan!");
-                        return true;
-                    }
-                    String clanName = args[1];
-                    createClan(clanName, uuid);
-                    player.sendMessage("§6[Simpleclan-PLUS] §aClan §e" + clanName + " §ahas been created!");
+                        if (!player.hasPermission("simpleclans.create")) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cYou don't have permission!");
+                                return true;
+                        }
+                        if (args.length < 2) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan create <name>");
+                                return true;
+                        }
+                        if (getClanOf(uuid) != null) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cYou are already in a clan!");
+                                return true;
+                        }
+                        String clanName = args[1];
+                        createClan(clanName, uuid);
+                        player.sendMessage("§6[Simpleclan-PLUS] §aClan §e" + clanName + " §ahas been created!");
                 }
+
                 case "update" -> {
                     if (!player.hasPermission("simpleclans.admin")) {
                         player.sendMessage("§6[Simpleclan-PLUS] §cYou don't have permission to use this command.");
@@ -103,103 +105,121 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                 }
 
                 case "invite" -> {
-                    if (args.length < 2) {
-                        player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan invite <player>");
-                        return true;
-                    }
-                    String clan = getClanOf(uuid);
-                    if (clan == null) {
-                        player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
-                        return true;
-                    }
-                    String role = getRoleOf(uuid);
-                    if (!role.equalsIgnoreCase("LEADER") && !role.equalsIgnoreCase("CO-LEADER")) {
-                        player.sendMessage("§6[Simpleclan-PLUS] §cOnly leaders or co-leaders can invite players!");
-                        return true;
-                    }
+                        if (!player.hasPermission("simpleclans.invite")) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cYou don't have permission!");
+                                return true;
+                        }
+                        String clan = getClanOf(uuid);
+                        if (clan == null) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
+                                return true;
+                        }
+                        String role = getRoleOf(uuid);
+                        if (!role.equalsIgnoreCase("LEADER") && !role.equalsIgnoreCase("CO-LEADER")) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cOnly leaders or co-leaders can invite players!");
+                                return true;
+                        }
+                        if (args.length < 2) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan invite <player>");
+                                return true;
+                        }
+                        Player target = Bukkit.getPlayerExact(args[1]);
+                        if (target == null) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
+                                return true;
+                        }
+                        UUID targetId = target.getUniqueId();
+                        if (getClanOf(targetId) != null) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cThat player is already in a clan!");
+                                return true;
+                        }
 
-                    Player target = Bukkit.getPlayerExact(args[1]);
-                    if (target == null) {
-                        player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
-                        return true;
-                    }
+                        try (PreparedStatement ps = connection.prepareStatement(
+                                        "INSERT INTO clan_invites(target_uuid, clan_name, inviter_uuid, timestamp) VALUES(?, ?, ?, ?)")) {
+                                ps.setString(1, targetId.toString());
+                                ps.setString(2, clan);
+                                ps.setString(3, uuid.toString());
+                                ps.setLong(4, System.currentTimeMillis());
+                                ps.executeUpdate();
+                        } catch (Exception e) {
+                                e.printStackTrace();
+                        }
 
-                    UUID targetId = target.getUniqueId();
-                    if (getClanOf(targetId) != null) {
-                        player.sendMessage("§6[Simpleclan-PLUS] §cThat player is already in a clan!");
-                        return true;
-                    }
-
-                    try (PreparedStatement ps = connection.prepareStatement(
-                            "INSERT INTO clan_invites(target_uuid, clan_name, inviter_uuid) VALUES(?, ?, ?)")) {
-                        ps.setString(1, targetId.toString());
-                        ps.setString(2, clan);
-                        ps.setString(3, uuid.toString());
-                        ps.setLong(4, System.currentTimeMillis());
-                        ps.executeUpdate();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-
-                    player.sendMessage("§6[Simpleclan-PLUS] §aYou invited §e" + target.getName() + " §ato join §b" + clan + "§a!");
-                    target.sendMessage("§6[Simpleclan-PLUS] §aYou have been invited to join §b" + clan + "§a! Type §e/clan join " + clan + " §ato accept.");
+                        player.sendMessage("§6[Simpleclan-PLUS] §aYou invited §e" + target.getName() + " §ato join §b" + clan + "§a!");
+                        target.sendMessage("§6[Simpleclan-PLUS] §aYou have been invited to join §b" + clan + "§a! Type §e/clan join " + clan + " §ato accept.");
                 }
+
 
                 case "join" -> {
-                    if (args.length < 2) {
-                        player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan join <name>");
-                        return true;
-                    }
-                    String clanName = args[1];
-
-                    try (PreparedStatement ps = connection.prepareStatement(
-                            "SELECT * FROM clan_invites WHERE target_uuid = ? AND clan_name = ?")) {
-                        ps.setString(1, uuid.toString());
-                        ps.setString(2, clanName);
-                        ResultSet rs = ps.executeQuery();
-                        if (!rs.next()) {
-                            player.sendMessage("§6[Simpleclan-PLUS] §cYou have not been invited to this clan!");
-                            return true;
+                        if (!player.hasPermission("simpleclans.join")) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cYou don't have permission!");
+                                return true;
                         }
-                        long timestamp = rs.getLong("timestamp");
-                        if (System.currentTimeMillis() - timestamp > 5 * 60 * 1000) { 
-                            player.sendMessage("§6[Simpleclan-PLUS] §cYour invitation has expired!");
-                            try (PreparedStatement delete = connection.prepareStatement(
-                                    "DELETE FROM clan_invites WHERE target_uuid = ? AND clan_name = ?")) {
-                                delete.setString(1, uuid.toString());
-                                delete.setString(2, clanName);
-                                delete.executeUpdate();
-                            }
-                            return true;
+                        if (args.length < 2) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan join <name>");
+                                return true;
                         }
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
+                        String clanName = args[1];
 
-                    addMemberToClan(uuid, clanName, "RECRUIT");
-                    try (PreparedStatement ps = connection.prepareStatement(
-                            "DELETE FROM clan_invites WHERE target_uuid = ? AND clan_name = ?")) {
-                        ps.setString(1, uuid.toString());
-                        ps.setString(2, clanName);
-                        ps.executeUpdate();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
+                        try (PreparedStatement ps = connection.prepareStatement(
+                                        "SELECT * FROM clan_invites WHERE target_uuid = ? AND clan_name = ?")) {
+                                ps.setString(1, uuid.toString());
+                                ps.setString(2, clanName);
+                                var rs = ps.executeQuery();
+                                if (!rs.next()) {
+                                        player.sendMessage("§6[Simpleclan-PLUS] §cYou have not been invited to this clan!");
+                                        return true;
+                                }
+                                long timestamp = rs.getLong("timestamp");
+                                if (System.currentTimeMillis() - timestamp > 5 * 60 * 1000) {
+                                        player.sendMessage("§6[Simpleclan-PLUS] §cYour invitation has expired!");
+                                        try (PreparedStatement del = connection.prepareStatement(
+                                                        "DELETE FROM clan_invites WHERE target_uuid = ? AND clan_name = ?")) {
+                                                del.setString(1, uuid.toString());
+                                                del.setString(2, clanName);
+                                                del.executeUpdate();
+                                        }
+                                        return true;
+                                }
+                        } catch (Exception e) {
+                                e.printStackTrace();
+                        }
 
-                    player.sendMessage("§6[Simpleclan-PLUS] §aYou have joined §b" + clanName + "§a!");
+                        addMemberToClan(uuid, clanName, "RECRUIT");
+
+                        try (PreparedStatement ps = connection.prepareStatement(
+                                        "DELETE FROM clan_invites WHERE target_uuid = ? AND clan_name = ?")) {
+                                ps.setString(1, uuid.toString());
+                                ps.setString(2, clanName);
+                                ps.executeUpdate();
+                        } catch (Exception e) {
+                                e.printStackTrace();
+                        }
+
+                        player.sendMessage("§6[Simpleclan-PLUS] §aYou have joined §b" + clanName + "§a!");
                 }
 
+
                 case "leave" -> {
-                    String clan = getClanOf(uuid);
-                    if (clan == null) {
-                        player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
-                        return true;
-                    }
-                    addMemberToClan(uuid, null, null);
-                    player.sendMessage("§6[Simpleclan-PLUS] §7You left the clan §e" + clan);
+                        if (!player.hasPermission("simpleclans.leave")) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cYou don't have permission!");
+                                return true;
+                        }
+                        String clan = getClanOf(uuid);
+                        if (clan == null) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
+                                return true;
+                        }
+                        addMemberToClan(uuid, null, null);
+                        player.sendMessage("§6[Simpleclan-PLUS] §7You left the clan §e" + clan);
                 }
 
                 case "info" -> {
+                    if (!player.hasPermission("simpleclans.info")) {
+                        player.sendMessage("§6[Simpleclan-PLUS] §cYou don't have permission!");
+                        return true;
+                    }
+                    
                     String clan = args.length > 1 ? args[1] : getClanOf(uuid);
                     if (clan == null) {
                         player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
@@ -234,7 +254,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
 
                 case "promote" -> {
-                    if (args.length < 2) {
+                    if (!player.hasPermission("simpleclans.promote")) {
                         player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan promote <player>");
                         return true;
                     }
@@ -277,6 +297,10 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     target.sendMessage("§6[Simpleclan-PLUS] §aYou have been promoted to §b" + newRole);
                 }
                 case "disband" -> {
+                    if (!player.hasPermission("simpleclans.disband")) {
+                        player.sendMessage("§6[Simpleclan-PLUS] §cYou don't have permission!");
+                        return true;
+                    }
                     String clan = getClanOf(uuid);
                     if (clan == null) {
                         player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
@@ -311,6 +335,10 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     Bukkit.broadcastMessage("§6[Simpleclan-PLUS] §cThe clan §e" + clan + " §chas been disbanded!");
                 }
                 case "list" -> {
+                    if (!player.hasPermission("simpleclans.list")) {
+                        player.sendMessage("§6[Simpleclan-PLUS] §cYou don't have permission!");
+                        return true;
+                    }
                     player.sendMessage("§6===== Online Players & Clans =====");
                     for (Player p : Bukkit.getOnlinePlayers()) {
                         String clan = getClanOf(p.getUniqueId());
@@ -326,7 +354,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                 }
 
                 case "chatmsg" -> {
-                    if (args.length < 2) {
+                    if (!player.hasPermission("simpleclans.chatmsg")) {
                         player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan chatmsg <message>");
                         return true;
                     }
@@ -344,7 +372,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     }
                 }
                 case "demote" -> {
-                    if (args.length < 2) {
+                    if (!player.hasPermission("simpleclans.demote")) {
                         player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan demote <player>");
                         return true;
                     }
@@ -510,6 +538,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         }
         return null;
     }
+    @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
