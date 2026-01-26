@@ -1,16 +1,11 @@
 name: simpleclans-PLUS
 main: simpleclans.simpleclans.SimpleclansPlugin
-version: 1.1.2
+version: 1.1.3
 api-version: 1.21
 author: [Robin] #My name has to stay here you can add your own name like this [Robin, Yourname]
 depend: [PlaceholderAPI]
 
 commands:
-  SimpleClansReload:
-    description: Reloads the Plugin configuration.
-    usage: /SimpleClansReload
-    permission: simpleclansreload.admin
-    permission-message: You do not have permission to use this command.
   clan:
     description: Clan management command.
     usage: |
@@ -23,18 +18,9 @@ commands:
       /clan demote <player> - Demote a clan member.
       /clan disband - Disband a clan.
       /clan update - update to the newset version.
+      /clan chat - Toggle clan chat
+      /clan chatmsg - Send a message to your clan
+      /clan list - Lists all clans
     aliases: [c]
     permission: simpleclans.use
     permission-message: You do not have permission to use this command.
-  clanchat:
-    description: Toggle clan chat
-    usage: /<command>
-    permission: simpleclans.use
-  clanchatmsg:
-    description: Send a message to your clan
-    usage: /<command>
-    permission: simpleclans.use
-  clanlist:
-    description: Lists all clans
-    usage: /clanlist
-    permission: simpleclans.use
