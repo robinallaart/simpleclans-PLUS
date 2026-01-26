@@ -27,73 +27,86 @@ commands:
     permission-message: You do not have permission to use this command.
 permissions:
   simpleclans.use:
-    description: Permission to use /clan command
+    description: Allows using general clan commands.
     default: true
 
   simpleclans.create:
-    description: Permission to create a clan
-    default: op
+    description: Allows players to create clans.
+    default: true
 
   simpleclans.invite:
-    description: Permission to invite players to your clan
-    default: op
+    description: Allows inviting players to a clan.
+    default: true
 
   simpleclans.join:
-    description: Permission to join a clan
+    description: Allows joining clans.
     default: true
 
   simpleclans.leave:
-    description: Permission to leave your clan
+    description: Allows leaving your clan.
     default: true
 
   simpleclans.info:
-    description: Permission to view clan info
+    description: Allows viewing clan info.
     default: true
 
   simpleclans.promote:
-    description: Permission to promote a clan member
-    default: op
-
-  simpleclans.demote:
-    description: Permission to demote a clan member
-    default: op
-
-  simpleclans.disband:
-    description: Permission to disband your own clan
-    default: op
-
-  simpleclans.list:
-    description: Permission to view all online players and their clans
+    description: Allows promoting members in your clan.
     default: true
 
-  simpleclans.chat:
-    description: Permission to toggle clan chat
+  simpleclans.demote:
+    description: Allows demoting members in your clan.
+    default: true
+
+  simpleclans.disband:
+    description: Allows disbanding your clan.
+    default: true
+
+  simpleclans.list:
+    description: Allows listing online players and clans.
     default: true
 
   simpleclans.chatmsg:
-    description: Permission to send a single clan chat message
+    description: Allows sending single clan chat messages.
     default: true
 
   simpleclans.admin:
-    description: Permission to use admin commands
+    description: Grants access to admin subcommands.
     default: op
 
   simpleclans.admin.promote:
-    description: Permission to promote any player via admin command
+    description: Admin promote command.
     default: op
 
   simpleclans.admin.demote:
-    description: Permission to demote any player via admin command
+    description: Admin demote command.
     default: op
 
   simpleclans.admin.kick:
-    description: Permission to kick any player via admin command
+    description: Admin kick command.
     default: op
 
   simpleclans.admin.disband:
-    description: Permission to disband any clan via admin command
+    description: Admin disband command.
     default: op
 
-  simpleclans.update:
-    description: Permission to update the plugin
+  simpleclans.admin.reset:
+    description: Admin reset clan command.
     default: op
+
+  simpleclans.admin.purge:
+    description: Admin purge player command.
+    default: op
+
+  simpleclans.admin.place:
+    description: Admin place a player into a clan.
+    default: op
+
+  simpleclans.admin.invite:
+    description: Admin invite a player to any clan.
+    default: op
+
+  simpleclans.admin.reload:
+    description: Admin reload plugin config.
+    default: op
+
