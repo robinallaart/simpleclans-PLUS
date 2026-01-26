@@ -397,7 +397,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
             if (args.length == 1) {
                 completions.addAll(Arrays.asList(
-                        "create", "invite", "join", "leave", "info", "promote", "demote", "disband", "help", "update"
+                        "create", "invite", "join", "leave", "info", "promote", "demote", "disband", "help", "update", "list","chat","chatmsg"
                 ));
 
                 completions.removeIf(s -> !s.toLowerCase().startsWith(args[0].toLowerCase()));
