@@ -46,58 +46,6 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
             getLogger().warning("[Simpleclan-PLUS]NO placeholderAPI found, placeholders won't work.");
         }
 
-
-        getCommand("clanlist").setExecutor((sender, command, label, args) -> {
-            if (!(sender instanceof Player player)) {
-                sender.sendMessage("§6[Simpleclan-PLUS] §cOnly players can use this command.");
-                return true;
-            }
-
-            player.sendMessage("§6===== Online Players & Clans =====");
-            for (Player p : Bukkit.getOnlinePlayers()) {
-                String clan = getClanOf(p.getUniqueId());
-                player.sendMessage("§e" + p.getName() + " §7- Clan: " + (clan != null ? clan : "None"));
-            }
-            return true;
-        });
-
-        getCommand("clanchatmsg").setExecutor((sender, command, label, args) -> {
-                if (!(sender instanceof Player player)) {
-                    sender.sendMessage("§6[Simpleclan-PLUS] §cOnly players can use this command.");
-                    return true;
-                }
-                if (args.length == 0) {
-                    player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan chat <message>");
-                    return true;
-                }
-                String clan = getClanOf(player.getUniqueId());
-                if (clan == null) {
-                    player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
-                    return true;
-                }
-                String msg = String.join(" ", args);
-                for (Map.Entry<UUID, String> member : getClanMembers(clan).entrySet()) {
-                    Player target = Bukkit.getPlayer(member.getKey());
-                    if (target != null) {
-                        target.sendMessage("§6[Clan] §e" + player.getName() + "§f: " + msg);
-                    }
-                }
-                return true;
-        });
-
-        getCommand("clanchat").setExecutor((sender, command, label, args) -> {
-                if (!(sender instanceof Player player)) {
-                    sender.sendMessage("§6[Simpleclan-PLUS] §cOnly players can use this command.");
-                    return true;
-                }
-                UUID uuid = player.getUniqueId();
-                boolean toggled = clanChatToggled.getOrDefault(uuid, false);
-                clanChatToggled.put(uuid, !toggled);
-                player.sendMessage("§6[Simpleclan-PLUS] §aClan chat " + (!toggled ? "enabled" : "disabled"));
-                return true;
-        });
-
-
         getCommand("clan").setExecutor((sender, command, label, args) -> {
             if (!(sender instanceof Player player)) {
                 sender.sendMessage("§6[Simpleclan-PLUS] §cOnly players can use this command.");
@@ -361,7 +309,39 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     player.sendMessage("§6[Simpleclan-PLUS] §aYou have disbanded the clan §e" + clan + "§a!");
                     Bukkit.broadcastMessage("§6[Simpleclan-PLUS] §cThe clan §e" + clan + " §chas been disbanded!");
                 }
+                case "list" -> {
+                    player.sendMessage("§6===== Online Players & Clans =====");
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        String clan = getClanOf(p.getUniqueId());
+                        player.sendMessage("§e" + p.getName() + " §7- Clan: " + (clan != null ? clan : "None"));
+                    }
+                }
 
+                case "chat" -> {
+                    UUID uuid = player.getUniqueId();
+                    boolean toggled = clanChatToggled.getOrDefault(uuid, false);
+                    clanChatToggled.put(uuid, !toggled);
+                    player.sendMessage("§6[Simpleclan-PLUS] §aClan chat " + (!toggled ? "enabled" : "disabled"));
+                }
+
+                case "chatmsg" -> {
+                    if (args.length < 2) {
+                        player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan chatmsg <message>");
+                        return true;
+                    }
+                    String clan = getClanOf(player.getUniqueId());
+                    if (clan == null) {
+                        player.sendMessage("§6[Simpleclan-PLUS] §cYou are not in a clan!");
+                        return true;
+                    }
+                    String msg = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+                    for (Map.Entry<UUID, String> member : getClanMembers(clan).entrySet()) {
+                        Player target = Bukkit.getPlayer(member.getKey());
+                        if (target != null) {
+                            target.sendMessage("§6[Clan] §e" + player.getName() + "§f: " + msg);
+                        }
+                    }
+                }
                 case "demote" -> {
                     if (args.length < 2) {
                         player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan demote <player>");
