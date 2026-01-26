@@ -11,6 +11,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bstats.bukkit.Metrics;
 
 import java.sql.*;
 import java.util.*;
@@ -35,6 +36,8 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         updater = new ModrinthUpdater(this, "simpleclans-plus");
         updater.checkForUpdates();
         Bukkit.getPluginManager().registerEvents(new UpdateNotifyListener(updater), this);
+        int pluginId = 29079;
+        Metrics metrics = new Metrics(this, pluginId);
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new ClanPlaceholder(this).register();

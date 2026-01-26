@@ -25,6 +25,7 @@ dependencies {
     compileOnly(files("libs/PlaceholderAPI-2.11.6.jar"))
     implementation(files("libs/json-20230618.jar"))
     compileOnly("org.jetbrains:annotations:24.0.1")
+    implementation("org.bstats:bstats-bukkit:3.1.0")
 }
 tasks.named("shadowJar") {
     archiveBaseName.set("simpleclans-PLUS")
