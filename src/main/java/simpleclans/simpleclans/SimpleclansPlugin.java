@@ -32,7 +32,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(this, this);
         connectDatabase();
         createTables();
-        updater = new ModrinthUpdater(this, "simpleclans");
+        updater = new ModrinthUpdater(this, "simpleclans-plus");
         updater.checkForUpdates();
         Bukkit.getPluginManager().registerEvents(new UpdateNotifyListener(updater), this);
 
