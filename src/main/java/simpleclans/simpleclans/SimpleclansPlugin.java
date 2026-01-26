@@ -85,6 +85,12 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 return true;
                         }
                         String clanName = args[1];
+
+                        if (getAllClanNames().stream().anyMatch(name -> name.equalsIgnoreCase(clanName))) {
+                            player.sendMessage("§6[Simpleclan-PLUS] §cA clan with that name already exists!");
+                            return true;
+                        }
+                        
                         createClan(clanName, uuid);
                         player.sendMessage("§6[Simpleclan-PLUS] §aClan §e" + clanName + " §ahas been created!");
                 }
@@ -414,37 +420,358 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     player.sendMessage("§6[Simpleclan-PLUS] §aYou demoted §e" + target.getName() + " §ato §b" + newRole);
                     target.sendMessage("§6[Simpleclan-PLUS] §cYou have been demoted to §b" + newRole);
                 }
+                case "admin" -> {
+                    if (!player.hasPermission("simpleclans.admin")) {
+                        player.sendMessage("§6[Simpleclan-PLUS] §cYou don't have permission to use admin commands!");
+                        return true;
+                    }
 
+                    if (args.length < 2) {
+                        player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin <subcommand> [args]");
+                        return true;
+                    }
+
+                    String adminCommand = args[1].toLowerCase();
+
+                    switch (adminCommand) {
+                        case "promote" -> {
+                            if (!player.hasPermission("simpleclans.admin.promote")) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                return true;
+                            }
+                            if (args.length < 4) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin promote <player> <clan>");
+                                return true;
+                            }
+                            Player target = Bukkit.getPlayerExact(args[2]);
+                            String clan = args[3];
+
+                            if (target == null) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
+                                return true;
+                            }
+
+                            String targetRole = getRoleOf(target.getUniqueId());
+                            String newRole = switch (targetRole.toUpperCase()) {
+                                case "RECRUIT" -> "MEMBER";
+                                case "MEMBER" -> "CO-LEADER";
+                                default -> null;
+                            };
+
+                            if (newRole == null) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cThat player cannot be promoted further!");
+                                return true;
+                            }
+
+                            addMemberToClan(target.getUniqueId(), clan, newRole);
+                            player.sendMessage("§6[Simpleclan-PLUS] §aYou promoted §e" + target.getName() + " §ato §b" + newRole);
+                            target.sendMessage("§6[Simpleclan-PLUS] §aYou have been promoted to §b" + newRole);
+                        }
+                        case "purge" -> {
+                            if (!player.hasPermission("simpleclans.admin.purge")) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                return true;
+                            }
+                            if (args.length < 3) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin purge <player>");
+                                return true;
+                            }
+                            Player target = Bukkit.getPlayerExact(args[2]);
+                            if (target == null) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
+                                return true;
+                            }
+                            addMemberToClan(target.getUniqueId(), null, null);
+                            player.sendMessage("§6[Simpleclan-PLUS] §aPurged data for §e" + target.getName());
+                            target.sendMessage("§6[Simpleclan-PLUS] §cYour clan data has been purged!");
+                        }
+
+                        case "reset" -> {
+                            if (!player.hasPermission("simpleclans.admin.reset")) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                return true;
+                            }
+                            if (args.length < 3) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin reset <clan>");
+                                return true;
+                            }
+                            String clan = args[2];
+
+                            // Reset kills and level
+                            updateClanKills(clan, 0);
+
+                            // Reset all members' roles to RECRUIT
+                            for (UUID memberUUID : getClanMembers(clan).keySet()) {
+                                addMemberToClan(memberUUID, clan, "RECRUIT");
+                            }
+
+                            player.sendMessage("§6[Simpleclan-PLUS] §aClan §e" + clan + " §ahas been reset!");
+                        }
+
+                        case "place" -> {
+                                if (!player.hasPermission("simpleclans.admin.place")) {
+                                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                                return true;
+                                }
+
+                                if (args.length < 4) {
+                                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin place <player> <clan> [role]");
+                                                return true;
+                                }
+
+                                Player target = Bukkit.getPlayerExact(args[2]);
+                                String clan = args[3];
+                                String role = args.length >= 5 ? args[4].toUpperCase() : "MEMBER";
+
+                                if (target == null) {
+                                                player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
+                                                return true;
+                                }
+
+                                // Controleer of de clan bestaat
+                                if (!getAllClanNames().contains(clan)) {
+                                                player.sendMessage("§6[Simpleclan-PLUS] §cClan §e" + clan + " §cbestaat niet!");
+                                                return true;
+                                }
+
+                                // Voeg speler toe aan clan met opgegeven rol
+                                addMemberToClan(target.getUniqueId(), clan, role);
+
+                                player.sendMessage("§6[Simpleclan-PLUS] §aYou placed §e" + target.getName() + " §ainto clan §b" + clan + " §7as §f" + role);
+                                target.sendMessage("§6[Simpleclan-PLUS] §aYou have been placed into clan §b" + clan + " §7as §f" + role + " §aby an admin.");
+                        }
+
+                        case "invite" -> {
+                            if (!player.hasPermission("simpleclans.admin.invite")) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                return true;
+                            }
+                            if (args.length < 4) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin invite <player> <clan>");
+                                return true;
+                            }
+                            Player target = Bukkit.getPlayerExact(args[2]);
+                            String clan = args[3];
+
+                            if (target == null) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
+                                return true;
+                            }
+
+                            try (PreparedStatement ps = connection.prepareStatement(
+                                    "INSERT INTO clan_invites(target_uuid, clan_name, inviter_uuid, timestamp) VALUES(?, ?, ?, ?)")) {
+                                ps.setString(1, target.getUniqueId().toString());
+                                ps.setString(2, clan);
+                                ps.setString(3, player.getUniqueId().toString());
+                                ps.setLong(4, System.currentTimeMillis());
+                                ps.executeUpdate();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+
+                            player.sendMessage("§6[Simpleclan-PLUS] §aYou invited §e" + target.getName() + " §ato join §b" + clan + "§a!");
+                            target.sendMessage("§6[Simpleclan-PLUS] §aYou have been invited to join §b" + clan + "§a! Type §e/clan join " + clan + " §ato accept.");
+                        }
+
+                        case "reload" -> {
+                            if (!player.hasPermission("simpleclans.admin.reload")) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                return true;
+                            }
+                            reloadConfig();
+                            player.sendMessage("§6[Simpleclan-PLUS] §aPlugin configuration reloaded!");
+                        }
+
+                        case "demote" -> {
+                            if (!player.hasPermission("simpleclans.admin.demote")) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                return true;
+                            }
+                            if (args.length < 4) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin demote <player> <clan>");
+                                return true;
+                            }
+                            Player target = Bukkit.getPlayerExact(args[2]);
+                            String clan = args[3];
+
+                            if (target == null) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
+                                return true;
+                            }
+
+                            String targetRole = getRoleOf(target.getUniqueId());
+                            String newRole = switch (targetRole.toUpperCase()) {
+                                case "CO-LEADER" -> "MEMBER";
+                                case "MEMBER" -> "RECRUIT";
+                                default -> null;
+                            };
+
+                            if (newRole == null) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cThat player cannot be demoted further!");
+                                return true;
+                            }
+
+                            addMemberToClan(target.getUniqueId(), clan, newRole);
+                            player.sendMessage("§6[Simpleclan-PLUS] §aYou demoted §e" + target.getName() + " §ato §b" + newRole);
+                            target.sendMessage("§6[Simpleclan-PLUS] §cYou have been demoted to §b" + newRole);
+                        }
+
+                        case "kick" -> {
+                            if (!player.hasPermission("simpleclans.admin.kick")) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                return true;
+                            }
+                            if (args.length < 4) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin kick <player> <clan>");
+                                return true;
+                            }
+                            Player target = Bukkit.getPlayerExact(args[2]);
+                            String clan = args[3];
+
+                            if (target == null) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
+                                return true;
+                            }
+
+                            if (!clan.equals(getClanOf(target.getUniqueId()))) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cThat player is not in the specified clan!");
+                                return true;
+                            }
+
+                            addMemberToClan(target.getUniqueId(), null, null);
+                            player.sendMessage("§6[Simpleclan-PLUS] §aYou kicked §e" + target.getName() + " §afrom §b" + clan);
+                            target.sendMessage("§6[Simpleclan-PLUS] §cYou have been kicked from §b" + clan);
+                        }
+                        case "help" -> {
+                            if (!player.hasPermission("simpleclans.admin")) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                return true;
+                            }
+
+                            player.sendMessage("§6===== §eAdmin Commands §6=====");
+                            player.sendMessage("§e/clan admin promote <player> <clan> §7- Promote a player in a clan");
+                            player.sendMessage("§e/clan admin demote <player> <clan> §7- Demote a player in a clan");
+                            player.sendMessage("§e/clan admin kick <player> <clan> §7- Kick a player from a clan");
+                            player.sendMessage("§e/clan admin disband <clan> §7- Disband any clan");
+                            player.sendMessage("§e/clan admin purge <player> §7- Reset a player's clan data");
+                            player.sendMessage("§e/clan admin reset <clan> §7- Reset a clan's data");
+                            player.sendMessage("§e/clan admin place §7- Place clan items/blocks");
+                            player.sendMessage("§e/clan admin invite <player> <clan> §7- Invite a player to any clan");
+                            player.sendMessage("§e/clan admin reload §7- Reload the plugin configuration");
+                            player.sendMessage("§6==============================");
+                        }
+
+
+                        case "disband" -> {
+                            if (!player.hasPermission("simpleclans.admin.disband")) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                return true;
+                            }
+                            if (args.length < 3) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin disband <clan>");
+                                return true;
+                            }
+                            String clan = args[2];
+
+                            try (PreparedStatement ps = connection.prepareStatement("DELETE FROM clans WHERE name = ?")) {
+                                ps.setString(1, clan);
+                                ps.executeUpdate();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                                player.sendMessage("§6[Simpleclan-PLUS] §cAn error occurred while disbanding the clan!");
+                                return true;
+                            }
+
+                            try (PreparedStatement ps = connection.prepareStatement("UPDATE clan_members SET clan = NULL, role = NULL WHERE clan = ?")) {
+                                ps.setString(1, clan);
+                                ps.executeUpdate();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+
+                            player.sendMessage("§6[Simpleclan-PLUS] §aYou have disbanded the clan §e" + clan);
+                            Bukkit.broadcastMessage("§6[Simpleclan-PLUS] §cThe clan §e" + clan + " §chas been disbanded!");
+                        }
+
+                        
+                        default -> player.sendMessage("§6[Simpleclan-PLUS] §cUnknown admin command.");
+                    }
+                }
                 default -> player.sendMessage("§6[Simpleclan-PLUS] §cUnknown subcommand. Use /clan help");
             }
 
             return true;
         });
         getCommand("clan").setTabCompleter((sender, command, alias, args) -> {
-            List<String> completions = new ArrayList<>();
+                List<String> completions = new ArrayList<>();
 
-            if (args.length == 1) {
-                completions.addAll(Arrays.asList(
-                        "create", "invite", "join", "leave", "info", "promote", "demote", "disband", "help", "update", "list","chat","chatmsg"
-                ));
+                if (!(sender instanceof Player)) return completions;
 
-                completions.removeIf(s -> !s.toLowerCase().startsWith(args[0].toLowerCase()));
-                return completions;
-            } else if (args.length == 2) {
-                String sub = args[0].toLowerCase();
-                if (sub.equals("invite") || sub.equals("promote") || sub.equals("demote")) {
-                    completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
-                    completions.removeIf(s -> !s.toLowerCase().startsWith(args[1].toLowerCase()));
-                } else if (sub.equals("join") || sub.equals("info")) {
-                    completions.addAll(getAllClanNames());
-                    completions.removeIf(s -> !s.toLowerCase().startsWith(args[1].toLowerCase()));
+                if (args.length == 1) {
+                        completions.addAll(Arrays.asList(
+                                "create", "invite", "join", "leave", "info", "promote", "demote", "disband",
+                                "help", "update", "list", "chat", "chatmsg", "admin"
+                        ));
                 }
+
+                else if (args.length == 2) {
+                        String sub = args[0].toLowerCase();
+                        switch (sub) {
+                                case "invite", "promote", "demote" ->
+                                        completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+                                case "join", "info", "disband" ->
+                                        completions.addAll(getAllClanNames());
+                                case "admin" ->
+                                        completions.addAll(Arrays.asList(
+                                                "promote", "demote", "kick", "invite", "disband", "reset", "purge",
+                                                "place", "reload", "help"
+                                        ));
+                        }
+                }
+
+                else if (args.length == 3) {
+                        String sub = args[0].toLowerCase();
+
+                        if (sub.equals("admin")) {
+                                String adminSub = args[1].toLowerCase();
+                                switch (adminSub) {
+                                        case "promote", "demote", "kick", "invite", "purge", "place" ->
+                                                completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+                                        case "disband", "reset" ->
+                                                completions.addAll(getAllClanNames());
+                                }
+                        }
+                }
+
+                else if (args.length == 4) {
+                        String sub = args[0].toLowerCase();
+
+                        if (sub.equals("admin")) {
+                                String adminSub = args[1].toLowerCase();
+                                switch (adminSub) {
+                                        case "promote", "demote", "kick", "invite", "place", "reset" ->
+                                                completions.addAll(getAllClanNames());
+                                }
+                        }
+                }
+
+                else if (args.length == 5) {
+                        String sub = args[0].toLowerCase();
+
+                        if (sub.equals("admin")) {
+                                String adminSub = args[1].toLowerCase();
+                                if (adminSub.equals("place")) {
+                                        completions.addAll(Arrays.asList("LEADER", "CO-LEADER", "MEMBER", "RECRUIT"));
+                                }
+                        }
+                }
+
+                // Filter resultaten op wat speler al typt
+                String lastArg = args[args.length - 1].toLowerCase();
+                completions.removeIf(s -> !s.toLowerCase().startsWith(lastArg));
+
                 return completions;
-            }
-
-            return Collections.emptyList();
         });
-
     }
 
     @Override
@@ -482,11 +809,6 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     "clan_name TEXT," +
                     "inviter_uuid TEXT," +
                     "timestamp INTEGER DEFAULT (strftime('%s','now')))");
-
-            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS clan_invites (" +
-                    "target_uuid TEXT," +
-                    "clan_name TEXT," +
-                    "inviter_uuid TEXT)");
         } catch (SQLException e) {
             e.printStackTrace();
         }
