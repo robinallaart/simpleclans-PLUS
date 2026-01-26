@@ -497,10 +497,10 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                             }
                             String clan = args[2];
 
-                            // Reset kills and level
+                          
                             updateClanKills(clan, 0);
 
-                            // Reset all members' roles to RECRUIT
+                           
                             for (UUID memberUUID : getClanMembers(clan).keySet()) {
                                 addMemberToClan(memberUUID, clan, "RECRUIT");
                             }
@@ -528,13 +528,13 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                                 return true;
                                 }
 
-                                // Controleer of de clan bestaat
+                               
                                 if (!getAllClanNames().contains(clan)) {
                                                 player.sendMessage("§6[Simpleclan-PLUS] §cClan §e" + clan + " §cbestaat niet!");
                                                 return true;
                                 }
 
-                                // Voeg speler toe aan clan met opgegeven rol
+                               
                                 addMemberToClan(target.getUniqueId(), clan, role);
 
                                 player.sendMessage("§6[Simpleclan-PLUS] §aYou placed §e" + target.getName() + " §ainto clan §b" + clan + " §7as §f" + role);
@@ -766,7 +766,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         }
                 }
 
-                // Filter resultaten op wat speler al typt
+           
                 String lastArg = args[args.length - 1].toLowerCase();
                 completions.removeIf(s -> !s.toLowerCase().startsWith(lastArg));
 
