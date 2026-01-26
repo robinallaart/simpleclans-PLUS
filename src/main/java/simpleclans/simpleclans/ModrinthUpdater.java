@@ -1,6 +1,7 @@
 package simpleclans.simpleclans;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -13,12 +14,16 @@ import java.util.Scanner;
 public class ModrinthUpdater {
     private final JavaPlugin plugin;
     private final String projectSlug;
+    private boolean updateAvailable = false;
+    private String latestVersion = null;
+    private String downloadUrl = null;
 
     public ModrinthUpdater(JavaPlugin plugin, String projectSlug) {
         this.plugin = plugin;
         this.projectSlug = projectSlug;
     }
 
+    // ------------------- UPDATE CHECK -------------------
     public void checkForUpdates() {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
@@ -40,22 +45,17 @@ public class ModrinthUpdater {
                 }
 
                 JSONObject latest = versions.getJSONObject(0);
-                String latestVersion = latest.getString("version_number");
+                latestVersion = latest.getString("version_number");
                 String currentVersion = plugin.getDescription().getVersion();
 
                 if (!currentVersion.equalsIgnoreCase(latestVersion)) {
-                    plugin.getLogger().info("===========================================");
-                    plugin.getLogger().info("Update available!");
-                    plugin.getLogger().info("Current version: v" + currentVersion);
-                    plugin.getLogger().info("Latest version:  v" + latestVersion);
-                    plugin.getLogger().info("===========================================");
-
-                    String downloadUrl = latest.getJSONArray("files")
+                    updateAvailable = true;
+                    downloadUrl = latest.getJSONArray("files")
                             .getJSONObject(0)
                             .getString("url");
 
-                    plugin.getLogger().info("Downloading update...");
-                    downloadUpdate(downloadUrl);
+                    // Console + online OP notificatie
+                    notifyUpdate();
                 } else {
                     plugin.getLogger().info("You are running the latest version (v" + currentVersion + ")");
                 }
@@ -64,6 +64,52 @@ public class ModrinthUpdater {
                 plugin.getLogger().warning("[Updater] Failed to check for updates: " + e.getMessage());
             }
         });
+    }
+
+    // ------------------- NOTIFICATIE -------------------
+    public void notifyUpdate() {
+        String currentVersion = plugin.getDescription().getVersion();
+
+        // Console
+        plugin.getLogger().info("===========================================");
+        plugin.getLogger().info("Update available!");
+        plugin.getLogger().info("Current version: v" + currentVersion);
+        plugin.getLogger().info("Latest version:  v" + latestVersion);
+        plugin.getLogger().info("Use /clan update to download it.");
+        plugin.getLogger().info("===========================================");
+
+        // Online OP-spelers
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.isOp()) sendUpdateMessage(player);
+        }
+    }
+
+    public void sendUpdateMessage(Player player) {
+        player.sendMessage("§6===========================================");
+        player.sendMessage("§aUpdate available!");
+        player.sendMessage("§eCurrent version: v" + plugin.getDescription().getVersion());
+        player.sendMessage("§bLatest version:  v" + latestVersion);
+        player.sendMessage("§cUse /clan update to download it.");
+        player.sendMessage("§6===========================================");
+    }
+
+    // ------------------- GETTERS -------------------
+    public boolean isUpdateAvailable() {
+        return updateAvailable;
+    }
+
+    public String getLatestVersion() {
+        return latestVersion;
+    }
+
+    // ------------------- DOWNLOAD UPDATE -------------------
+    public void downloadLatestUpdate() {
+        if (!updateAvailable || downloadUrl == null) {
+            plugin.getLogger().info("[Updater] No update available to download.");
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> downloadUpdate(downloadUrl));
     }
 
     private void downloadUpdate(String downloadUrl) {

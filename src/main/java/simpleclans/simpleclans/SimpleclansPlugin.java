@@ -22,15 +22,19 @@ import org.jetbrains.annotations.Nullable;
 public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
     private Connection connection;
+    private ModrinthUpdater updater;
+
     private final Map<UUID, Boolean> clanChatToggled = new HashMap<>();
     @Override
     public void onEnable() {
         saveDefaultConfig();
         reloadConfig();
+        Bukkit.getPluginManager().registerEvents(new UpdateNotifyListener(updater), this);
         Bukkit.getPluginManager().registerEvents(this, this);
         connectDatabase();
         createTables();
-        new ModrinthUpdater(this, "simpleclans-plus").checkForUpdates();
+        updater = new ModrinthUpdater(this, "simpleclans"); // Zorg dat dit je Modrinth project slug is
+        updater.checkForUpdates();
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new ClanPlaceholder(this).register();
@@ -38,6 +42,8 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         } else {
             getLogger().warning("[Simpleclan-PLUS]NO placeholderAPI found, placeholders won't work.");
         }
+
+
         getCommand("clanlist").setExecutor((sender, command, label, args) -> {
             if (!(sender instanceof Player player)) {
                 sender.sendMessage("§6[Simpleclan-PLUS] §cOnly players can use this command.");
@@ -128,6 +134,20 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     String clanName = args[1];
                     createClan(clanName, uuid);
                     player.sendMessage("§6[Simpleclan-PLUS] §aClan §e" + clanName + " §ahas been created!");
+                }
+                case "update" -> {
+                    if (!player.hasPermission("simpleclans.admin")) {
+                        player.sendMessage("§6[Simpleclan-PLUS] §cYou don't have permission to use this command.");
+                        return true;
+                    }
+
+                    if (updater.isUpdateAvailable()) {
+                        player.sendMessage("§6[Simpleclan-PLUS] §eDownloading latest update...");
+                        updater.downloadLatestUpdate();
+                        player.sendMessage("§6[Simpleclan-PLUS] §aUpdate downloaded! It will be installed on the next restart.");
+                    } else {
+                        player.sendMessage("§6[Simpleclan-PLUS] §aYou are already running the latest version!");
+                    }
                 }
 
                 case "invite" -> {
@@ -393,7 +413,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
             if (args.length == 1) {
                 completions.addAll(Arrays.asList(
-                        "create", "invite", "join", "leave", "info", "promote", "demote", "disband", "help"
+                        "create", "invite", "join", "leave", "info", "promote", "demote", "disband", "help", "update"
                 ));
 
                 completions.removeIf(s -> !s.toLowerCase().startsWith(args[0].toLowerCase()));
@@ -412,6 +432,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
             return Collections.emptyList();
         });
+
     }
 
     @Override
@@ -432,7 +453,6 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
             e.printStackTrace();
         }
     }
-
     private void createTables() {
         try (Statement stmt = connection.createStatement()) {
             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS clans (" +

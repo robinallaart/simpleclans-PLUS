@@ -22,6 +22,7 @@ commands:
       /clan promote <player> - Promote a clan member.
       /clan demote <player> - Demote a clan member.
       /clan disband - Disband a clan.
+      /clan update - update to the newset version.
     aliases: [c]
     permission: simpleclans.use
     permission-message: You do not have permission to use this command.
