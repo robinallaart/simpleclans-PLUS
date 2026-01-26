@@ -9,6 +9,9 @@ Designed for **performance**, **simplicity**, and **modern Minecraft compatibili
 
 ### Features
 
+**Update notify**
+• Get notified when the version is outdated and simply update it using the command 
+`/clan update`.  
 
 **Clan Management**
 • Create, join, leave, and disband clans  
@@ -24,6 +27,21 @@ Designed for **performance**, **simplicity**, and **modern Minecraft compatibili
 • Automatic clan level calculation based on kills  
 • View information via `/clan info`  
 • List all players and their clans with `/clanlist`  
+### LuckPerms Permissions
+| Command | Permissions |
+|----------|-------------|
+| `/clan create <name>` | simpleclans.create |
+| `/clan invite <player>` | simpleclans.invite |
+| `/clan join <name>` | simpleclans.join |
+| `/clan leave` | simpleclans.leave |
+| `/clan info [name]` | simpleclans.info |
+| `/clan chat` | simpleclans.chat |
+| `/clan chatmsg <message>` | simpleclans.chatmsg |
+| `/clan list` | simpleclans.list |
+| `/clan promote <player>` | simpleclans.promote |
+| `/clan demote <player>` | simpleclans.demote |
+| `/clan disband` | simpleclans.disband |
+| `/clan update` | simpleclans.admin |
 
 **PlaceholderAPI Integration**
 • Seamless support for PlaceholderAPI  
@@ -47,7 +65,7 @@ Designed for **performance**, **simplicity**, and **modern Minecraft compatibili
 
 ### Commands
 
-
+### general commands
 | Command | Description |
 |----------|-------------|
 | `/clan create <name>` | Create a new clan |
@@ -55,16 +73,17 @@ Designed for **performance**, **simplicity**, and **modern Minecraft compatibili
 | `/clan join <name>` | Accept an invitation |
 | `/clan leave` | Leave your current clan |
 | `/clan info [name]` | Display clan details |
+| `/clan update` | Updates to the newsest version |
+| `/clan chat` | Toggle clan chat mode |
+| `/clan chatmsg <message>` | Send a single clan message |
+| `/clan list` | Display all players and clans |
+
+### CO-Leader/Leader commands
+| Command | Description |
+|----------|-------------|
 | `/clan promote <player>` | Promote a clan member |
 | `/clan demote <player>` | Demote a clan member |
-| `/clan disband` | Disband your clan |
-| `/clan update` | Updates to the newsest version. (auto download) |
-| `/clanchat` | Toggle clan chat mode |
-| `/clanchatmsg <message>` | Send a single clan message |
-| `/clanlist` | Display all players and clans |
-
-
-
+| `/clan disband` | Disband your clan(only leader) |
 ### Configuration
 
 
@@ -107,5 +126,3 @@ Designed for **performance**, **simplicity**, and **modern Minecraft compatibili
 Simpleclans-PLUS provides a complete, stable, and expandable clan system  
 built for modern Minecraft servers. It is simple to configure, efficient,  
 and integrates smoothly with PlaceholderAPI and other major plugins.
-
-
