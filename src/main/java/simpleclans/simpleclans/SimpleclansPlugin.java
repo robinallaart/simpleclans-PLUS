@@ -33,7 +33,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(this, this);
         connectDatabase();
         createTables();
-        updater = new ModrinthUpdater(this, "simpleclans"); // Zorg dat dit je Modrinth project slug is
+        updater = new ModrinthUpdater(this, "simpleclans");
         updater.checkForUpdates();
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -210,7 +210,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                             return true;
                         }
                         long timestamp = rs.getLong("timestamp");
-                        if (System.currentTimeMillis() - timestamp > 5 * 60 * 1000) { // 5 minuten
+                        if (System.currentTimeMillis() - timestamp > 5 * 60 * 1000) { 
                             player.sendMessage("§6[Simpleclan-PLUS] §cYour invitation has expired!");
                             try (PreparedStatement delete = connection.prepareStatement(
                                     "DELETE FROM clan_invites WHERE target_uuid = ? AND clan_name = ?")) {
