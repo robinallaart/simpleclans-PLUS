@@ -27,21 +27,6 @@ Designed for **performance**, **simplicity**, and **modern Minecraft compatibili
 • Automatic clan level calculation based on kills  
 • View information via `/clan info`  
 • List all players and their clans with `/clanlist`  
-### LuckPerms Permissions
-| Command | Permissions |
-|----------|-------------|
-| `/clan create <name>` | simpleclans.create |
-| `/clan invite <player>` | simpleclans.invite |
-| `/clan join <name>` | simpleclans.join |
-| `/clan leave` | simpleclans.leave |
-| `/clan info [name]` | simpleclans.info |
-| `/clan chat` | simpleclans.chat |
-| `/clan chatmsg <message>` | simpleclans.chatmsg |
-| `/clan list` | simpleclans.list |
-| `/clan promote <player>` | simpleclans.promote |
-| `/clan demote <player>` | simpleclans.demote |
-| `/clan disband` | simpleclans.disband |
-| `/clan update` | simpleclans.admin |
 
 **PlaceholderAPI Integration**
 • Seamless support for PlaceholderAPI  
@@ -65,25 +50,40 @@ Designed for **performance**, **simplicity**, and **modern Minecraft compatibili
 
 ### Commands
 
-### general commands
-| Command | Description |
-|----------|-------------|
-| `/clan create <name>` | Create a new clan |
-| `/clan invite <player>` | Invite a player to your clan |
-| `/clan join <name>` | Accept an invitation |
-| `/clan leave` | Leave your current clan |
-| `/clan info [name]` | Display clan details |
-| `/clan update` | Updates to the newsest version |
-| `/clan chat` | Toggle clan chat mode |
-| `/clan chatmsg <message>` | Send a single clan message |
-| `/clan list` | Display all players and clans |
+### General Commands
+| Command | Description | Permission |
+|---------|-------------|------------|
+| /clan create <name> | Create a new clan | simpleclans.create |
+| /clan invite <player> | Invite a player to your clan | simpleclans.invite |
+| /clan join <name> | Accept an invitation | simpleclans.join |
+| /clan leave | Leave your current clan | simpleclans.leave |
+| /clan info [name] | Display clan details | simpleclans.info |
+| /clan update | Update to the newest version | simpleclans.admin |
+| /clan chat | Toggle clan chat mode | simpleclans.chat |
+| /clan chatmsg <message> | Send a single clan message | simpleclans.chatmsg |
+| /clan list | Display all players and clans | simpleclans.list |
 
-### CO-Leader/Leader commands
-| Command | Description |
-|----------|-------------|
-| `/clan promote <player>` | Promote a clan member |
-| `/clan demote <player>` | Demote a clan member |
-| `/clan disband` | Disband your clan(only leader) |
+### CO-Leader/Leader Commands
+| Command | Description | Permission |
+|---------|-------------|------------|
+| /clan promote <player> | Promote a clan member | simpleclans.promote |
+| /clan demote <player> | Demote a clan member | simpleclans.demote |
+| /clan disband | Disband your clan (only leader) | simpleclans.disband |
+
+### Admin Commands
+| Command | Description | Permission |
+|---------|-------------|------------|
+| /clan admin promote <player> <clan> | Promote a player in a specific clan | simpleclans.admin.promote |
+| /clan admin demote <player> <clan> | Demote a player in a specific clan | simpleclans.admin.demote |
+| /clan admin kick <player> <clan> | Kick a player from a clan | simpleclans.admin.kick |
+| /clan admin disband <clan> | Disband any clan | simpleclans.admin.disband |
+| /clan admin purge | Purge clan data (not implemented yet) | simpleclans.admin.purge |
+| /clan admin reset | Reset clan stats (not implemented yet) | simpleclans.admin.reset |
+| /clan admin place | Place clan-related items/blocks (not implemented yet) | simpleclans.admin.place |
+| /clan admin invite <player> <clan> | Invite a player to any clan (not implemented yet) | simpleclans.admin.invite |
+| /clan admin reload | Reload plugin configuration | simpleclans.admin.reload |
+| /clan admin help | Display all admin commands | simpleclans.admin |
+
 ### Configuration
 
 
