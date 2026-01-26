@@ -319,9 +319,9 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                 }
 
                 case "chat" -> {
-                    UUID uuid = player.getUniqueId();
-                    boolean toggled = clanChatToggled.getOrDefault(uuid, false);
-                    clanChatToggled.put(uuid, !toggled);
+                    UUID playerUUID = player.getUniqueId();
+                    boolean toggled = clanChatToggled.getOrDefault(playerUUID, false);
+                    clanChatToggled.put(playerUUID, !toggled);
                     player.sendMessage("§6[Simpleclan-PLUS] §aClan chat " + (!toggled ? "enabled" : "disabled"));
                 }
 
