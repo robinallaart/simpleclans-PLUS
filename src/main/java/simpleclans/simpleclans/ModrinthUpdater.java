@@ -23,7 +23,6 @@ public class ModrinthUpdater {
         this.projectSlug = projectSlug;
     }
 
-    // ------------------- UPDATE CHECK -------------------
     public void checkForUpdates() {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
@@ -54,7 +53,7 @@ public class ModrinthUpdater {
                             .getJSONObject(0)
                             .getString("url");
 
-                    // Console + online OP notificatie
+    
                     notifyUpdate();
                 } else {
                     plugin.getLogger().info("You are running the latest version (v" + currentVersion + ")");
@@ -66,11 +65,11 @@ public class ModrinthUpdater {
         });
     }
 
-    // ------------------- NOTIFICATIE -------------------
+
     public void notifyUpdate() {
         String currentVersion = plugin.getDescription().getVersion();
 
-        // Console
+
         plugin.getLogger().info("===========================================");
         plugin.getLogger().info("Update available!");
         plugin.getLogger().info("Current version: v" + currentVersion);
@@ -78,7 +77,7 @@ public class ModrinthUpdater {
         plugin.getLogger().info("Use /clan update to download it.");
         plugin.getLogger().info("===========================================");
 
-        // Online OP-spelers
+ 
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (player.isOp()) sendUpdateMessage(player);
         }
@@ -93,7 +92,7 @@ public class ModrinthUpdater {
         player.sendMessage("§6===========================================");
     }
 
-    // ------------------- GETTERS -------------------
+
     public boolean isUpdateAvailable() {
         return updateAvailable;
     }
@@ -102,7 +101,7 @@ public class ModrinthUpdater {
         return latestVersion;
     }
 
-    // ------------------- DOWNLOAD UPDATE -------------------
+    
     public void downloadLatestUpdate() {
         if (!updateAvailable || downloadUrl == null) {
             plugin.getLogger().info("[Updater] No update available to download.");
