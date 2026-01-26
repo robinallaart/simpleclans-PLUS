@@ -6,6 +6,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.entity.Player;
 
 public class UpdateNotifyListener implements Listener {
+
     private final ModrinthUpdater updater;
 
     public UpdateNotifyListener(ModrinthUpdater updater) {
@@ -14,7 +15,9 @@ public class UpdateNotifyListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
+        if (updater == null) return; 
         Player player = event.getPlayer();
+
         if (player.isOp() && updater.isUpdateAvailable()) {
             updater.sendUpdateMessage(player);
         }
