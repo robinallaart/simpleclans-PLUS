@@ -16,7 +16,7 @@ messages:
   not_in_your_clan: "%prefix% §cThat player is not in your clan!"
 
 
-  # Create / Join / Leave / disband
+  # Create / Join / Leave
   clan_created: "%prefix% §aClan §e%clan% §ahas been created!"
   clan_create: "%prefix% §cUsage: /clan create <name>"
   clan_join: "%prefix% §cUsage: /clan join <name>"
@@ -42,6 +42,11 @@ messages:
   clan_promote_usage: "%prefix% §cUsage: /clan promote <player>" 
   clan_demote_usage: "%prefix% §cUsage: /clan demote <player>"
 
+  # Update
+  update_checking: "%prefix% §eChecking for updates..."
+  update_available: "%prefix% §eDownloading latest update..."
+  update_done: "%prefix% §aUpdate downloaded! It will be installed on the next restart."
+  update_latest: "%prefix% §aYou are already running the latest version!"
 
   # Clan Chat
   chat_enabled: "%prefix% §aClan chat enabled"
