@@ -14,9 +14,9 @@ messages:
   invalid_usage: "%prefix% §cInvalid usage! Type /clan help"
   already_in_clan_player: "%prefix% §cThat player is already in a clan!"
   not_in_your_clan: "%prefix% §cThat player is not in your clan!"
+  default: "%prefix% §cUnknown subcommand. Use /clan help"
 
-
-  # Create / Join / Leave
+  # Create / Join / Leave / disband
   clan_created: "%prefix% §aClan §e%clan% §ahas been created!"
   clan_create: "%prefix% §cUsage: /clan create <name>"
   clan_join: "%prefix% §cUsage: /clan join <name>"
@@ -42,11 +42,6 @@ messages:
   clan_promote_usage: "%prefix% §cUsage: /clan promote <player>" 
   clan_demote_usage: "%prefix% §cUsage: /clan demote <player>"
 
-  # Update
-  update_checking: "%prefix% §eChecking for updates..."
-  update_available: "%prefix% §eDownloading latest update..."
-  update_done: "%prefix% §aUpdate downloaded! It will be installed on the next restart."
-  update_latest: "%prefix% §aYou are already running the latest version!"
 
   # Clan Chat
   chat_enabled: "%prefix% §aClan chat enabled"
@@ -54,47 +49,30 @@ messages:
   chat_message: "§6[Clan] §e%player%§f: %message%"
   chat_usage: "%prefix% §cUsage: /clan chatmsg <message>"
 
-
-  # Clan Info
-  info_title: "§6===== §eClan Info §6===== "
-  info_name: "§eClan Name: §f%clan%"
-  info_level: "§eLevel: §f%level%"
-  info_kills: "§eKills: §f%kills%"
-  info_members: "§eMembers:"
-  info_member_line: "%color% - %player% §8[%role%] %status%"
-  info_footer: "§6========================="
-
-  # List command
-  list_title: "§6===== Online Players & Clans ====="
-  list_line: "§e%player% §7- Clan: %clan%"
-
   # Admin commands
   admin_no_perm: "%prefix% §cYou don't have permission to use admin commands!"
-  admin_reload: "%prefix% §aPlugin configuration reloaded!"
   admin_reload_lang: "%prefix% §aConfiguration and language reloaded! (Current: %lang%)"
   admin_promote: "%prefix% §aYou promoted §e%player% §ato §b%role%"
   admin_demote: "%prefix% §aYou demoted §e%player% §ato §b%role%"
   admin_reset: "%prefix% §aClan §e%clan% §ahas been reset!"
   admin_purge: "%prefix% §aPurged data for §e%player%"
-  admin_kick: "%prefix% §aYou kicked §e%player% §afrom §b%clan%"
   admin_invite: "%prefix% §aYou invited §e%player% §ato join §b%clan%"
   admin_disband: "%prefix% §aYou have disbanded the clan §e%clan%"
-  admin_help_header: "§6===== §eAdmin Commands §6====="
-  admin_help_footer: "§6=============================="
-
-  # Help command
-  help_header: "§6===== §6[Simpleclan-PLUS] §fClan Commands ====="
-  help_footer: "§6======================================="
-  help_lines:
-    - "§e/clan create <name> §7- Create a new clan."
-    - "§e/clan invite <player> §7- Invite a player to your clan."
-    - "§e/clan join <name> §7- Join a clan you were invited to."
-    - "§e/clan leave §7- Leave your current clan."
-    - "§e/clan info [name] §7- View info about a clan."
-    - "§e/clan promote <player> §7- Promote a member."
-    - "§e/clan demote <player> §7- Demote a member."
-    - "§e/clan chatmsg §7- Send a single message in clan chat."
-    - "§e/clan chat §7- Toggle clan chat."
-    - "§e/clan list §7- Shows a list of all clans."
-    - "§e/clan update §7- Update to the newest version."
-
+  admin_demote_usage: "%prefix% §cUsage: /clan admin demote <player> <clan>"
+  admin_kick_usage: "%prefix% §cUsage: /clan admin kick <player> <clan>"
+  admin_invite_usage: "%prefix% §cUsage: /clan admin invite <player> <clan>"
+  admin_promote_usage: "%prefix% §cUsage: /clan admin promote <player> <clan>"
+  admin_disband_usage: "%prefix% §cUsage: /clan admin disband <clan>"
+  admin_default: "%prefix% §cUnknown admin command."
+  admin_default1: "%prefix% §cUsage: /clan admin <subcommand> [args]"
+  admin_notin_clan: "%prefix% §cThat player is not in the specified clan!"
+  admin_kick_success: "%prefix% §aYou kicked §e%player% §afrom §b%clan%!"
+  admin_kick_target: "%prefix% §cYou have been kicked from §b%clan%!"
+  admin_usage_place: "%prefix% §cUsage: /clan admin place <player> <clan> <role>"
+  admin_usage_reset: "%prefix% §cUsage: /clan admin reset <clan>"
+  admin_usage_purge: "%prefix% §cUsage: /clan admin purge <player>"
+  admin_purge_success: "%prefix% §aPurged data for §e%player%!"
+  admin_purge_target: "%prefix% §cYour clan data has been purged!"
+  admin_clan_not_exist: "%prefix% §cClan §e%clan% §cdoes not exist!"
+  admin_place_success_player: "%prefix% §aYou placed §e%player% §ainto clan §b%clan% §7as §f%role%"
+  admin_place_success_target: "%prefix% §aYou have been placed into clan §b%clan% §7as §f%role% §aby an admin."

@@ -437,7 +437,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     }
 
                     if (args.length < 2) {
-                        player.sendMessage("§cUsage: /clan admin <subcommand> [args]");
+                        player.sendMessage(getMessage("admin_default1", Map.of()));
                         return true;
                     }
 
@@ -450,7 +450,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                             if (args.length < 4) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin promote <player> <clan>");
+                                player.sendMessage(getMessage("admin_promote_usage", Map.of()));
                                 return true;
                             }
                             Player target = Bukkit.getPlayerExact(args[2]);
@@ -483,17 +483,17 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                             if (args.length < 3) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin purge <player>");
+                                player.sendMessage(getMessage("admin_usage_purge", Map.of()));
                                 return true;
                             }
                             Player target = Bukkit.getPlayerExact(args[2]);
                             if (target == null) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
+                                player.sendMessage(getMessage("player_not_found", Map.of()));
                                 return true;
                             }
                             addMemberToClan(target.getUniqueId(), null, null);
-                            player.sendMessage("§6[Simpleclan-PLUS] §aPurged data for §e" + target.getName());
-                            target.sendMessage("§6[Simpleclan-PLUS] §cYour clan data has been purged!");
+                            player.sendMessage(getMessage("admin_purge_success", Map.of("player", target.getName())));
+                            target.sendMessage(getMessage("admin_purge_target", Map.of()));
                         }
 
                         case "reset" -> {
@@ -502,7 +502,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                             if (args.length < 3) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin reset <clan>");
+                                player.sendMessage(getMessage("admin_usage_reset", Map.of()));
                                 return true;
                             }
                             String clan = args[2];
@@ -525,7 +525,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 }
 
                                 if (args.length < 4) {
-                                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin place <player> <clan> [role]");
+                                                player.sendMessage(getMessage("admin_usage_place", Map.of()));
                                                 return true;
                                 }
 
@@ -534,21 +534,21 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 String role = args.length >= 5 ? args[4].toUpperCase() : "MEMBER";
 
                                 if (target == null) {
-                                                player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
+                                                target.sendMessage(getMessage("player_not_found", Map.of("clan", clan)));
                                                 return true;
                                 }
 
                                
                                 if (!getAllClanNames().contains(clan)) {
-                                                player.sendMessage("§6[Simpleclan-PLUS] §cClan §e" + clan + " §cbestaat niet!");
+                                                player.sendMessage(getMessage("admin_clan_not_exist", Map.of("clan", clan)));
                                                 return true;
                                 }
 
                                
                                 addMemberToClan(target.getUniqueId(), clan, role);
 
-                                player.sendMessage("§6[Simpleclan-PLUS] §aYou placed §e" + target.getName() + " §ainto clan §b" + clan + " §7as §f" + role);
-                                target.sendMessage("§6[Simpleclan-PLUS] §aYou have been placed into clan §b" + clan + " §7as §f" + role + " §aby an admin.");
+                                player.sendMessage(getMessage("admin_place_success_player", Map.of("player", target.getName(),"clan", clan,"role", role)));
+                                target.sendMessage(getMessage("admin_place_success_target", Map.of("clan", clan,"role", role)));
                         }
 
                         case "invite" -> {
@@ -557,7 +557,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                             if (args.length < 4) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin invite <player> <clan>");
+                                player.sendMessage(getMessage("admin_invite_usage", Map.of()));
                                 return true;
                             }
                             Player target = Bukkit.getPlayerExact(args[2]);
@@ -600,7 +600,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                             if (args.length < 4) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin demote <player> <clan>");
+                                player.sendMessage(getMessage("admin_demote_usage", Map.of()));
                                 return true;
                             }
                             Player target = Bukkit.getPlayerExact(args[2]);
@@ -634,25 +634,25 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                             if (args.length < 4) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin kick <player> <clan>");
+                                player.sendMessage(getMessage("admin_kick_usage", Map.of()));
                                 return true;
                             }
                             Player target = Bukkit.getPlayerExact(args[2]);
                             String clan = args[3];
 
                             if (target == null) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
+                                player.sendMessage(getMessage("player_not_found", Map.of()));
                                 return true;
                             }
 
                             if (!clan.equals(getClanOf(target.getUniqueId()))) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cThat player is not in the specified clan!");
+                                player.sendMessage(getMessage("admin_notin_clan", Map.of()));
                                 return true;
                             }
 
                             addMemberToClan(target.getUniqueId(), null, null);
-                            player.sendMessage("§6[Simpleclan-PLUS] §aYou kicked §e" + target.getName() + " §afrom §b" + clan);
-                            target.sendMessage("§6[Simpleclan-PLUS] §cYou have been kicked from §b" + clan);
+                            player.sendMessage(getMessage("admin_kick_success", Map.of("player", target.getName(),"clan", clan)));
+                            target.sendMessage(getMessage("admin_kick_target", Map.of("clan", clan)));
                         }
                         case "help" -> {
                             if (!player.hasPermission("simpleclans.admin")) {
@@ -680,7 +680,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                             if (args.length < 3) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin disband <clan>");
+                                player.sendMessage(getMessage("admin_disband_usage", Map.of()));
                                 return true;
                             }
                             String clan = args[2];
@@ -705,10 +705,10 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         }
 
                         
-                        default -> player.sendMessage("§6[Simpleclan-PLUS] §cUnknown admin command.");
+                        default -> player.sendMessage(getMessage("admin_default", Map.of()));
                     }
                 }
-                default -> player.sendMessage("§6[Simpleclan-PLUS] §cUnknown subcommand. Use /clan help");
+                default -> player.sendMessage(getMessage("default", Map.of()));
             }
 
             return true;
