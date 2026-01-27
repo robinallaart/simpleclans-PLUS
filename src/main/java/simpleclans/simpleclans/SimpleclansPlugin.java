@@ -786,22 +786,27 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
     }
     private void loadLanguageFile(String lang) {
         File langFolder = new File(getDataFolder(), "languages");
-        if (!langFolder.exists()) {
-            langFolder.mkdirs();
-        }
+        if (!langFolder.exists()) langFolder.mkdirs();
 
         File langFile = new File(langFolder, lang + ".yml");
-
         if (!langFile.exists()) {
-            saveResource("languages/" + lang + ".yml", false);
+            getLogger().warning("Language file " + lang + ".yml not found! Falling back to EN.yml.");
+            lang = "EN";
+            saveResource("languages/EN.yml", false);
+            langFile = new File(langFolder, "EN.yml");
         }
+
         languageConfig = YamlConfiguration.loadConfiguration(langFile);
+
         InputStream defaultStream = getResource("languages/" + lang + ".yml");
         if (defaultStream != null) {
-            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defaultStream, StandardCharsets.UTF_8));
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(
+                new InputStreamReader(defaultStream, StandardCharsets.UTF_8)
+            );
             languageConfig.setDefaults(defConfig);
         }
     }
+
     public String getMessage(String path) {
         return languageConfig.getString("messages." + path, "Message not found: " + path);
     }
