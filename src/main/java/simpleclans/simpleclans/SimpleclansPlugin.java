@@ -792,7 +792,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         if (!langFolder.exists()) langFolder.mkdirs();
 
         
-        String[] builtInLangs = {"EN", "NL"}; 
+        String[] builtInLangs = {"EN", "NL","CH", "SP", "HI", "AR", "BE", "PO", "RU", "JA","PU", "DE", "WU", "KO", "FR", "TE", "MA","TU", "TA", "VI", "UR", "KA", "GU", "OR", "BH","MI", "HA", "JI", "IN", "IT"};
 
         for (String lang : builtInLangs) {
             File langFile = new File(langFolder, lang + ".yml");
