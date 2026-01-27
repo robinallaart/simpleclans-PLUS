@@ -51,7 +51,6 @@ messages:
 
   # Admin commands
   admin_no_perm: "%prefix% §cYou don't have permission to use admin commands!"
-  admin_reload: "%prefix% §aPlugin configuration reloaded!"
   admin_reload_lang: "%prefix% §aConfiguration and language reloaded! (Current: %lang%)"
   admin_promote: "%prefix% §aYou promoted §e%player% §ato §b%role%"
   admin_demote: "%prefix% §aYou demoted §e%player% §ato §b%role%"
@@ -60,6 +59,5 @@ messages:
   admin_kick: "%prefix% §aYou kicked §e%player% §afrom §b%clan%"
   admin_invite: "%prefix% §aYou invited §e%player% §ato join §b%clan%"
   admin_disband: "%prefix% §aYou have disbanded the clan §e%clan%"
-  admin_help_header: "§6===== §eAdmin Commands §6====="
-  admin_help_footer: "§6=============================="
+  
 

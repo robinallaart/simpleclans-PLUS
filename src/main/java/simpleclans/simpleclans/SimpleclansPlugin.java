@@ -430,14 +430,14 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     player.sendMessage(getMessage("demote_success", Map.of("player", target.getName(), "role", newRole)));
                     target.sendMessage(getMessage("demoted_to", Map.of("role", newRole)));
                 }
-   dwdw             case "admin" -> {
+                case "admin" -> {
                     if (!player.hasPermission("simpleclans.admin")) {
                         player.sendMessage(getMessage("admin_no_perm", Map.of()));
                         return true;
                     }
 
                     if (args.length < 2) {
-                        player.sendMessage("§6[Simpleclan-PLUS] §cUsage: /clan admin <subcommand> [args]");
+                        player.sendMessage("§cUsage: /clan admin <subcommand> [args]");
                         return true;
                     }
 
@@ -457,7 +457,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                             String clan = args[3];
 
                             if (target == null) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
+                                target.sendMessage(getMessage("player_not_found", Map.of("clan", clan)));
                                 return true;
                             }
 
@@ -469,13 +469,13 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                             };
 
                             if (newRole == null) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cThat player cannot be promoted further!");
+                                player.sendMessage(getMessage("cannot_promote", Map.of()));
                                 return true;
                             }
 
                             addMemberToClan(target.getUniqueId(), clan, newRole);
-                            player.sendMessage("§6[Simpleclan-PLUS] §aYou promoted §e" + target.getName() + " §ato §b" + newRole);
-                            target.sendMessage("§6[Simpleclan-PLUS] §aYou have been promoted to §b" + newRole);
+                            player.sendMessage(getMessage("promote_success", Map.of("player", target.getName(), "role", newRole)));
+                            target.sendMessage(getMessage("promoted_to", Map.of("role", newRole)));
                         }
                         case "purge" -> {
                             if (!player.hasPermission("simpleclans.admin.purge")) {
@@ -515,7 +515,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 addMemberToClan(memberUUID, clan, "RECRUIT");
                             }
 
-                            player.sendMessage("§6[Simpleclan-PLUS] §aClan §e" + clan + " §ahas been reset!");
+                            player.sendMessage(getMessage("admin_reset", Map.of("clan", clan))); 
                         }
 
                         case "place" -> {
@@ -564,7 +564,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                             String clan = args[3];
 
                             if (target == null) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
+                                player.sendMessage(getMessage("player_not_found", Map.of()));
                                 return true;
                             }
 
@@ -579,8 +579,8 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 e.printStackTrace();
                             }
 
-                            player.sendMessage("§6[Simpleclan-PLUS] §aYou invited §e" + target.getName() + " §ato join §b" + clan + "§a!");
-                            target.sendMessage("§6[Simpleclan-PLUS] §aYou have been invited to join §b" + clan + "§a! Type §e/clan join " + clan + " §ato accept.");
+                            player.sendMessage(getMessage("invited_player", Map.of("player", target.getName(), "clan", clan)));
+                            target.sendMessage(getMessage("invited_you", Map.of("clan", clan)));
                         }
 
                         case "reload" -> {
@@ -591,7 +591,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                             reloadConfig();
                             languageCode = getConfig().getString("Language.default", "EN").toUpperCase();
                             loadLanguageFile(languageCode);
-                            player.sendMessage("§6[Simpleclan-PLUS] §aConfiguration and language reloaded! (Current: " + languageCode + ")");
+                            player.sendMessage(getMessage("admin_reload_lang", Map.of("language", languageCode)));
                         }
 
                         case "demote" -> {
@@ -607,7 +607,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                             String clan = args[3];
 
                             if (target == null) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cPlayer not found!");
+                                player.sendMessage(getMessage("player_not_found", Map.of()));
                                 return true;
                             }
 
@@ -619,13 +619,13 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                             };
 
                             if (newRole == null) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cThat player cannot be demoted further!");
+                                player.sendMessage(getMessage("cannot_demote", Map.of()));
                                 return true;
                             }
 
                             addMemberToClan(target.getUniqueId(), clan, newRole);
-                            player.sendMessage("§6[Simpleclan-PLUS] §aYou demoted §e" + target.getName() + " §ato §b" + newRole);
-                            target.sendMessage("§6[Simpleclan-PLUS] §cYou have been demoted to §b" + newRole);
+                            player.sendMessage(getMessage("demote_success", Map.of("player", target.getName(), "role", newRole)));
+                            target.sendMessage(getMessage("demoted_to", Map.of("role", newRole)));
                         }
 
                         case "kick" -> {
@@ -690,7 +690,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 ps.executeUpdate();
                             } catch (SQLException e) {
                                 e.printStackTrace();
-                                player.sendMessage("§6[Simpleclan-PLUS] §cAn error occurred while disbanding the clan!");
+                                player.sendMessage(getMessage("clan_disband_error", Map.of()));
                                 return true;
                             }
 
@@ -701,8 +701,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 e.printStackTrace();
                             }
 
-                            player.sendMessage("§6[Simpleclan-PLUS] §aYou have disbanded the clan §e" + clan);
-                            Bukkit.broadcastMessage("§6[Simpleclan-PLUS] §cThe clan §e" + clan + " §chas been disbanded!");
+                            player.sendMessage(getMessage("you_disbanded", Map.of("clan", clan)));
                         }
 
                         
