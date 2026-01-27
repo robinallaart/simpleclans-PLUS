@@ -101,7 +101,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         }
                         
                         createClan(clanName, uuid);
-                        player.sendMessage("§6[Simpleclan-PLUS] §aClan §e" + clanName + " §ahas been created!");
+                        player.sendMessage(getMessage("clan_created", Map.of("clan", clanName)));
                 }
 
                 case "update" -> {
