@@ -1,1 +1,88 @@
+messages:
+  prefix: "§6[Simpleclan-PLUS]§r"
+
+  # General
+  only_players: "%prefix% §cOnly players can use this command."
+  no_permission: "%prefix% §cYou don't have permission!"
+  not_in_clan: "%prefix% §cYou are not in a clan!"
+  already_in_clan: "%prefix% §cYou are already in a clan!"
+  clan_not_found: "%prefix% §cThat clan does not exist!"
+  player_not_found: "%prefix% §cPlayer not found!"
+  no_invite: "%prefix% §cYou have not been invited to this clan!"
+  invite_expired: "%prefix% §cYour invitation has expired!"
+  clan_exists: "%prefix% §cA clan with that name already exists!"
+  invalid_usage: "%prefix% §cInvalid usage! Type /clan help"
+
+  # Create / Join / Leave
+  clan_created: "%prefix% §aClan §e%clan% §ahas been created!"
+  joined_clan: "%prefix% §aYou have joined §b%clan%§a!"
+  left_clan: "%prefix% §7You left the clan §e%clan%"
+  clan_disbanded: "%prefix% §cThe clan §e%clan% §chas been disbanded!"
+  you_disbanded: "%prefix% §aYou have disbanded the clan §e%clan%§a!"
+
+  # Invites
+  invited_player: "%prefix% §aYou invited §e%player% §ato join §b%clan%§a!"
+  invited_you: "%prefix% §aYou have been invited to join §b%clan%§a! Type §e/clan join %clan% §ato accept."
+
+  # Promotion / Demotion
+  promote_success: "%prefix% §aYou promoted §e%player% §ato §b%role%"
+  promoted_to: "%prefix% §aYou have been promoted to §b%role%"
+  demote_success: "%prefix% §aYou demoted §e%player% §ato §b%role%"
+  demoted_to: "%prefix% §cYou have been demoted to §b%role%"
+  cannot_promote: "%prefix% §cThat player cannot be promoted further!"
+  cannot_demote: "%prefix% §cThat player cannot be demoted further!"
+
+  # Update
+  update_checking: "%prefix% §eChecking for updates..."
+  update_available: "%prefix% §eDownloading latest update..."
+  update_done: "%prefix% §aUpdate downloaded! It will be installed on the next restart."
+  update_latest: "%prefix% §aYou are already running the latest version!"
+
+  # Clan Chat
+  chat_enabled: "%prefix% §aClan chat enabled"
+  chat_disabled: "%prefix% §aClan chat disabled"
+  chat_message: "§6[Clan] §e%player%§f: %message%"
+
+  # Clan Info
+  info_title: "§6===== §eClan Info §6===== "
+  info_name: "§eClan Name: §f%clan%"
+  info_level: "§eLevel: §f%level%"
+  info_kills: "§eKills: §f%kills%"
+  info_members: "§eMembers:"
+  info_member_line: "%color% - %player% §8[%role%] %status%"
+  info_footer: "§6========================="
+
+  # List command
+  list_title: "§6===== Online Players & Clans ====="
+  list_line: "§e%player% §7- Clan: %clan%"
+
+  # Admin commands
+  admin_no_perm: "%prefix% §cYou don't have permission to use admin commands!"
+  admin_reload: "%prefix% §aPlugin configuration reloaded!"
+  admin_reload_lang: "%prefix% §aConfiguration and language reloaded! (Current: %lang%)"
+  admin_promote: "%prefix% §aYou promoted §e%player% §ato §b%role%"
+  admin_demote: "%prefix% §aYou demoted §e%player% §ato §b%role%"
+  admin_reset: "%prefix% §aClan §e%clan% §ahas been reset!"
+  admin_purge: "%prefix% §aPurged data for §e%player%"
+  admin_kick: "%prefix% §aYou kicked §e%player% §afrom §b%clan%"
+  admin_invite: "%prefix% §aYou invited §e%player% §ato join §b%clan%"
+  admin_disband: "%prefix% §aYou have disbanded the clan §e%clan%"
+  admin_help_header: "§6===== §eAdmin Commands §6====="
+  admin_help_footer: "§6=============================="
+
+  # Help command
+  help_header: "§6===== §6[Simpleclan-PLUS] §fClan Commands ====="
+  help_footer: "§6======================================="
+  help_lines:
+    - "§e/clan create <name> §7- Create a new clan."
+    - "§e/clan invite <player> §7- Invite a player to your clan."
+    - "§e/clan join <name> §7- Join a clan you were invited to."
+    - "§e/clan leave §7- Leave your current clan."
+    - "§e/clan info [name] §7- View info about a clan."
+    - "§e/clan promote <player> §7- Promote a member."
+    - "§e/clan demote <player> §7- Demote a member."
+    - "§e/clan chatmsg §7- Send a single message in clan chat."
+    - "§e/clan chat §7- Toggle clan chat."
+    - "§e/clan list §7- Shows a list of all clans."
+    - "§e/clan update §7- Update to the newest version."
 
