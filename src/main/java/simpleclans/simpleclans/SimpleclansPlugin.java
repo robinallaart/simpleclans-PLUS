@@ -807,9 +807,17 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         }
     }
 
-    public String getMessage(String path) {
-        return languageConfig.getString("messages." + path, "Message not found: " + path);
+    public String getMessage(String path, Map<String, String> placeholders) {
+        String msg = languageConfig.getString("messages." + path, "Message not found: " + path);
+        if (msg == null) return "Message not found: " + path;
+
+        msg = msg.replace("%prefix%", languageConfig.getString("messages.prefix", "§6[Simpleclan-PLUS]"));
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            msg = msg.replace("%" + entry.getKey() + "%", entry.getValue());
+        }
+        return msg;
     }
+
     public String getLanguage() {
         return languageCode;
     }   
