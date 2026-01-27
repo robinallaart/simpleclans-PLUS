@@ -61,7 +61,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
             UUID uuid = player.getUniqueId();
 
             if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-                player.sendMessage("§6===== §6[Simpleclan-PLUS] §fClan Commands =====");
+                player.sendMessage("§6=========== §fClan Commands ===========");
                 player.sendMessage("§e/clan create <name> §7- Create a new clan.");
                 player.sendMessage("§e/clan invite <player> §7- Invite a player to your clan.");
                 player.sendMessage("§e/clan join <name> §7- Join a clan you were invited to.");
@@ -430,9 +430,9 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     player.sendMessage(getMessage("demote_success", Map.of("player", target.getName(), "role", newRole)));
                     target.sendMessage(getMessage("demoted_to", Map.of("role", newRole)));
                 }
-                case "admin" -> {
+   dwdw             case "admin" -> {
                     if (!player.hasPermission("simpleclans.admin")) {
-                        player.sendMessage("§6[Simpleclan-PLUS] §cYou don't have permission to use admin commands!");
+                        player.sendMessage(getMessage("admin_no_perm", Map.of()));
                         return true;
                     }
 
@@ -446,7 +446,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     switch (adminCommand) {
                         case "promote" -> {
                             if (!player.hasPermission("simpleclans.admin.promote")) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                player.sendMessage(getMessage("admin_no_perm", Map.of()));
                                 return true;
                             }
                             if (args.length < 4) {
@@ -479,7 +479,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         }
                         case "purge" -> {
                             if (!player.hasPermission("simpleclans.admin.purge")) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                player.sendMessage(getMessage("admin_no_perm", Map.of()));
                                 return true;
                             }
                             if (args.length < 3) {
@@ -498,7 +498,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
                         case "reset" -> {
                             if (!player.hasPermission("simpleclans.admin.reset")) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                player.sendMessage(getMessage("admin_no_perm", Map.of()));
                                 return true;
                             }
                             if (args.length < 3) {
@@ -520,7 +520,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
                         case "place" -> {
                                 if (!player.hasPermission("simpleclans.admin.place")) {
-                                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                                player.sendMessage(getMessage("admin_no_perm", Map.of()));
                                                 return true;
                                 }
 
@@ -553,7 +553,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
                         case "invite" -> {
                             if (!player.hasPermission("simpleclans.admin.invite")) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                player.sendMessage(getMessage("admin_no_perm", Map.of()));
                                 return true;
                             }
                             if (args.length < 4) {
@@ -585,7 +585,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
                         case "reload" -> {
                             if (!player.hasPermission("simpleclans.admin.reload")) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                player.sendMessage(getMessage("admin_no_perm", Map.of()));
                                 return true;
                             }
                             reloadConfig();
@@ -596,7 +596,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
                         case "demote" -> {
                             if (!player.hasPermission("simpleclans.admin.demote")) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                player.sendMessage(getMessage("admin_no_perm", Map.of()));
                                 return true;
                             }
                             if (args.length < 4) {
@@ -630,7 +630,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
                         case "kick" -> {
                             if (!player.hasPermission("simpleclans.admin.kick")) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                player.sendMessage(getMessage("admin_no_perm", Map.of()));
                                 return true;
                             }
                             if (args.length < 4) {
@@ -656,7 +656,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         }
                         case "help" -> {
                             if (!player.hasPermission("simpleclans.admin")) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                player.sendMessage(getMessage("admin_no_perm", Map.of()));
                                 return true;
                             }
 
@@ -676,7 +676,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
                         case "disband" -> {
                             if (!player.hasPermission("simpleclans.admin.disband")) {
-                                player.sendMessage("§6[Simpleclan-PLUS] §cNo permission!");
+                                player.sendMessage(getMessage("admin_no_perm", Map.of()));
                                 return true;
                             }
                             if (args.length < 3) {

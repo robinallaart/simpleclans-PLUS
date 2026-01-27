@@ -49,20 +49,6 @@ messages:
   chat_message: "§6[Clan] §e%player%§f: %message%"
   chat_usage: "%prefix% §cUsage: /clan chatmsg <message>"
 
-
-  # Clan Info
-  info_title: "§6===== §eClan Info §6===== "
-  info_name: "§eClan Name: §f%clan%"
-  info_level: "§eLevel: §f%level%"
-  info_kills: "§eKills: §f%kills%"
-  info_members: "§eMembers:"
-  info_member_line: "%color% - %player% §8[%role%] %status%"
-  info_footer: "§6========================="
-
-  # List command
-  list_title: "§6===== Online Players & Clans ====="
-  list_line: "§e%player% §7- Clan: %clan%"
-
   # Admin commands
   admin_no_perm: "%prefix% §cYou don't have permission to use admin commands!"
   admin_reload: "%prefix% §aPlugin configuration reloaded!"
@@ -76,20 +62,4 @@ messages:
   admin_disband: "%prefix% §aYou have disbanded the clan §e%clan%"
   admin_help_header: "§6===== §eAdmin Commands §6====="
   admin_help_footer: "§6=============================="
-
-  # Help command
-  help_header: "§6===== §6[Simpleclan-PLUS] §fClan Commands ====="
-  help_footer: "§6======================================="
-  help_lines:
-    - "§e/clan create <name> §7- Create a new clan."
-    - "§e/clan invite <player> §7- Invite a player to your clan."
-    - "§e/clan join <name> §7- Join a clan you were invited to."
-    - "§e/clan leave §7- Leave your current clan."
-    - "§e/clan info [name] §7- View info about a clan."
-    - "§e/clan promote <player> §7- Promote a member."
-    - "§e/clan demote <player> §7- Demote a member."
-    - "§e/clan chatmsg §7- Send a single message in clan chat."
-    - "§e/clan chat §7- Toggle clan chat."
-    - "§e/clan list §7- Shows a list of all clans."
-    - "§e/clan update §7- Update to the newest version."
 
