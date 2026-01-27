@@ -25,7 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 
 public class SimpleclansPlugin extends JavaPlugin implements Listener {
-
+    private FileConfiguration languageConfig;
+    private String languageCode;
     private Connection connection;
     private ModrinthUpdater updater;
 
@@ -34,6 +35,9 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
     public void onEnable() {
         saveDefaultConfig();
         reloadConfig();
+        languageCode = getConfig().getString("Language.default", "EN").toUpperCase();
+        loadLanguageFile(languageCode);
+        getLogger().info("SimpleClans started with language: " + languageCode);
         Bukkit.getPluginManager().registerEvents(this, this);
         connectDatabase();
         createTables();
@@ -584,7 +588,9 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                             reloadConfig();
-                            player.sendMessage("§6[Simpleclan-PLUS] §aPlugin configuration reloaded!");
+                            languageCode = getConfig().getString("Language.default", "EN").toUpperCase();
+                            loadLanguageFile(languageCode);
+                            player.sendMessage("§6[Simpleclan-PLUS] §aConfiguration and language reloaded! (Current: " + languageCode + ")");
                         }
 
                         case "demote" -> {
@@ -778,7 +784,30 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                 return completions;
         });
     }
+    private void loadLanguageFile(String lang) {
+        File langFolder = new File(getDataFolder(), "languages");
+        if (!langFolder.exists()) {
+            langFolder.mkdirs();
+        }
 
+        File langFile = new File(langFolder, lang + ".yml");
+
+        if (!langFile.exists()) {
+            saveResource("languages/" + lang + ".yml", false);
+        }
+        languageConfig = YamlConfiguration.loadConfiguration(langFile);
+        InputStream defaultStream = getResource("languages/" + lang + ".yml");
+        if (defaultStream != null) {
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defaultStream, StandardCharsets.UTF_8));
+            languageConfig.setDefaults(defConfig);
+        }
+    }
+    public String getMessage(String path) {
+        return languageConfig.getString("messages." + path, "Message not found: " + path);
+    }
+    public String getLanguage() {
+        return languageCode;
+    }   
     @Override
     public void onDisable() {
         getLogger().info("[Simpleclan-PLUS] ClanPlugin is disabled!");
