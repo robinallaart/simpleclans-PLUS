@@ -31,12 +31,14 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
     private ModrinthUpdater updater;
 
     private final Map<UUID, Boolean> clanChatToggled = new HashMap<>();
+    private final Map<String, FileConfiguration> languages = new HashMap<>();
     @Override
     public void onEnable() {
         saveDefaultConfig();
         reloadConfig();
         languageCode = getConfig().getString("Language.default", "EN").toUpperCase();
-        loadLanguageFile(languageCode);
+        loadAllLanguageFiles();
+        setLanguage(languageCode); 
         getLogger().info("SimpleClans started with language: " + languageCode);
         Bukkit.getPluginManager().registerEvents(this, this);
         connectDatabase();
@@ -590,7 +592,8 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                             }
                             reloadConfig();
                             languageCode = getConfig().getString("Language.default", "EN").toUpperCase();
-                            loadLanguageFile(languageCode);
+                            loadAllLanguageFiles(); 
+                            setLanguage(languageCode);
                             player.sendMessage(getMessage("admin_reload_lang", Map.of("language", languageCode)));
                         }
 
@@ -784,29 +787,40 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                 return completions;
         });
     }
-    private void loadLanguageFile(String lang) {
+    private void loadAllLanguageFiles() {
         File langFolder = new File(getDataFolder(), "languages");
         if (!langFolder.exists()) langFolder.mkdirs();
 
-        File langFile = new File(langFolder, lang + ".yml");
-        if (!langFile.exists()) {
-            getLogger().warning("Language file " + lang + ".yml not found! Falling back to EN.yml.");
-            lang = "EN";
-            saveResource("languages/EN.yml", false);
-            langFile = new File(langFolder, "EN.yml");
-        }
+        
+        String[] builtInLangs = {"EN", "NL"}; 
 
-        languageConfig = YamlConfiguration.loadConfiguration(langFile);
+        for (String lang : builtInLangs) {
+            File langFile = new File(langFolder, lang + ".yml");
 
-        InputStream defaultStream = getResource("languages/" + lang + ".yml");
-        if (defaultStream != null) {
-            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(
-                new InputStreamReader(defaultStream, StandardCharsets.UTF_8)
-            );
-            languageConfig.setDefaults(defConfig);
+            
+            if (!langFile.exists() && getResource("languages/" + lang + ".yml") != null) {
+                saveResource("languages/" + lang + ".yml", false);
+            }
+
+            
+            if (langFile.exists()) {
+                FileConfiguration config = YamlConfiguration.loadConfiguration(langFile);
+
+                
+                InputStream defaultStream = getResource("languages/EN.yml");
+                if (defaultStream != null) {
+                    YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(
+                        new InputStreamReader(defaultStream, StandardCharsets.UTF_8)
+                    );
+                    config.setDefaults(defConfig);
+                }
+
+                languages.put(lang.toUpperCase(), config);
+            } else {
+                getLogger().warning("Could not find language file for " + lang + "!");
+            }
         }
     }
-
     public String getMessage(String path, Map<String, String> placeholders) {
         String msg = languageConfig.getString("messages." + path, "Message not found: " + path);
         if (msg == null) return "Message not found: " + path;
@@ -858,6 +872,16 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     "timestamp INTEGER DEFAULT (strftime('%s','now')))");
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+    private void setLanguage(String langCode) {
+        langCode = langCode.toUpperCase();
+        if (languages.containsKey(langCode)) {
+            languageConfig = languages.get(langCode);
+            getLogger().info("Active language set to: " + langCode);
+        } else {
+            languageConfig = languages.get("EN");
+            getLogger().warning("Language " + langCode + " not found! Falling back to EN.");
         }
     }
 
