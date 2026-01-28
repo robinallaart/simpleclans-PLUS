@@ -39,6 +39,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         languageCode = getConfig().getString("Language.default", "EN").toUpperCase();
         loadAllLanguageFiles();
         setLanguage(languageCode); 
+        Bukkit.getPluginManager().registerEvents(new ClanMenu(this), this);
         getLogger().info("SimpleClans started with language: " + languageCode);
         Bukkit.getPluginManager().registerEvents(this, this);
         connectDatabase();
@@ -120,6 +121,15 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     } else {
                         player.sendMessage("§6[Simpleclan-PLUS] §aYou are already running the latest version!");
                     }
+                }
+                case "menu" -> {
+                                if (!(sender instanceof Player p)) {
+                                                sender.sendMessage(getMessage("only_players", Map.of()));
+                                                return true;
+                                }
+
+                                ClanMenu menu = new ClanMenu(this);
+                                menu.openMenu(p);
                 }
 
                 case "invite" -> {
@@ -724,7 +734,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                 if (args.length == 1) {
                         completions.addAll(Arrays.asList(
                                 "create", "invite", "join", "leave", "info", "promote", "demote", "disband",
-                                "help", "update", "list", "chat", "chatmsg", "admin"
+                                "help", "update", "list", "chat", "chatmsg", "admin", "menu"
                         ));
                 }
 
