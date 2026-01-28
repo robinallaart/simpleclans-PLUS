@@ -33,7 +33,11 @@ permissions:
   simpleclans.create:
     description: Allows players to create clans.
     default: true
-
+    
+  simpleclans.kick:
+    description: Allows you to kick players from your clan.
+    default: true
+    
   simpleclans.invite:
     description: Allows inviting players to a clan.
     default: true
