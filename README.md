@@ -1,4 +1,4 @@
-#  Simpleclans-PLUS
+![### Simpleclans-PLUS](https://cdn.modrinth.com/data/cached_images/fd2b00525752c369fea7a2db1a0ad86ce92b60d8.png)
 
 
 **Simpleclans-PLUS** is a lightweight and efficient clan management plugin for servers.  
@@ -6,8 +6,7 @@ It provides a structured system for creating, managing, and communicating within
 Designed for **performance**, **simplicity**, and **modern Minecraft compatibility**.
 
 
-
-### Features
+![### Features](https://cdn.modrinth.com/data/cached_images/4d0a42ba9db618b704c910b50bf6489108e5fb5d_0.webp)
 
 **Update notify**
 • Get notified when the version is outdated and simply update it using the command 
@@ -48,7 +47,8 @@ Designed for **performance**, **simplicity**, and **modern Minecraft compatibili
 
 
 
-### Commands
+![### Commands](https://cdn.modrinth.com/data/cached_images/999bcd27588da5226c8e88914d9f7d262d58e5f5_0.webp)
+
 
 ### General Commands
 | Command | Description | Permission |
@@ -95,9 +95,9 @@ Designed for **performance**, **simplicity**, and **modern Minecraft compatibili
 ### Compatibility
 
 
-• Fully compatible with **Spigot**, **Paper**, and **Purpur**  
+• Fully compatible with **Spigot**, **Paper**, **bukkit**, and **Purpur**  
 • Automatically detects and integrates with **PlaceholderAPI**  
-
+• Automatically detects and integrates with **LuckPerms**  
 
 
 ### Planned Additions
