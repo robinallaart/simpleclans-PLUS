@@ -16,8 +16,36 @@ src/
 │   │   └── plugin.yml
 │   │
 │   └── language/
-│   │   ├── NL.yml
+│   │   ├── AR.yml
+│   │   └── BE.yml
+│   │   ├── BH.yml
+│   │   └── CH.yml
+│   │   ├── DE.yml
 │   │   └── EN.yml
+│   │   ├── FR.yml
+│   │   └── GU.yml
+│   │   ├── HA.yml
+│   │   └── HI.yml
+│   │   ├── IN.yml
+│   │   └── IT.yml
+│   │   ├── JA.yml
+│   │   └── JI.yml
+│   │   ├── KA.yml
+│   │   └── KO.yml
+│   │   ├── MA.yml
+│   │   └── MI.yml
+│   │   ├── NL.yml
+│   │   └── OR.yml
+│   │   └── PO.yml
+│   │   ├── PU.yml
+│   │   └── RU.yml
+│   │   ├── SP.yml
+│   │   └── TA.yml
+│   │   ├── TE.yml
+│   │   └── TU.yml
+│   │   ├── UR.yml
+│   │   └── VI.yml
+│   │   ├── WU.yml
 ```
 
 ## Beschrijving van bestanden
