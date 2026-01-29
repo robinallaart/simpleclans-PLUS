@@ -4,7 +4,7 @@
 **Simpleclans-PLUS** is a lightweight and efficient clan management plugin for servers.  
 It provides a structured system for creating, managing, and communicating within clans.  
 Designed for **performance**, **simplicity**, and **modern Minecraft compatibility**.
-
+It also has langauge support for 30 languages.
 
 ![### Features](https://cdn.modrinth.com/data/cached_images/4d0a42ba9db618b704c910b50bf6489108e5fb5d_0.webp)
 
@@ -58,7 +58,6 @@ Designed for **performance**, **simplicity**, and **modern Minecraft compatibili
 | /clan join <name> | Accept an invitation | simpleclans.join |
 | /clan leave | Leave your current clan | simpleclans.leave |
 | /clan info [name] | Display clan details | simpleclans.info |
-| /clan update | Update to the newest version | simpleclans.admin |
 | /clan chat | Toggle clan chat mode | simpleclans.chat |
 | /clan chatmsg <message> | Send a single clan message | simpleclans.chatmsg |
 | /clan list | Display all players and clans | simpleclans.list |
@@ -83,6 +82,7 @@ Designed for **performance**, **simplicity**, and **modern Minecraft compatibili
 | /clan admin invite <player> <clan> | Invite a player to any clan (not implemented yet) | simpleclans.admin.invite |
 | /clan admin reload | Reload plugin configuration | simpleclans.admin.reload |
 | /clan admin help | Display all admin commands | simpleclans.admin |
+| /clan admin update | Update to the newest version | simpleclans.admin |
 
 ### Configuration
 
