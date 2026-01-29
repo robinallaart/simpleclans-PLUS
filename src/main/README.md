@@ -10,7 +10,8 @@ src/
 │   │       └── simpleclans/
 │   │           ├── ModrinthUpdater.java
 │   │           ├── SimpleclansPlugin.java
-│   │           └── UpdateNotifyListener.java
+│   │           ├── UpdateNotifyListener.java  
+│   │           └── ClanMenu.java    
 │   ├── resources/
 │   │   ├── config.yml
 │   │   └── plugin.yml
