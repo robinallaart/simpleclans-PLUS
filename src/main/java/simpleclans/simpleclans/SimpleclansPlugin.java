@@ -29,6 +29,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
     private String languageCode;
     private Connection connection;
     private ModrinthUpdater updater;
+    private ClanMenu clanMenu;
 
     private final Map<UUID, Boolean> clanChatToggled = new HashMap<>();
     private final Map<String, FileConfiguration> languages = new HashMap<>();
@@ -40,9 +41,12 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         languageCode = getConfig().getString("Language.default", "EN").toUpperCase();
         loadAllLanguageFiles();
         setLanguage(languageCode); 
-        Bukkit.getPluginManager().registerEvents(new ClanMenu(this), this);
         getLogger().info("SimpleClans started with language: " + languageCode);
         Bukkit.getPluginManager().registerEvents(this, this);
+        
+        // Initialize and register ClanMenu once
+        clanMenu = new ClanMenu(this);
+        Bukkit.getPluginManager().registerEvents(clanMenu, this);
         connectDatabase();
         createTables();
         updater = new ModrinthUpdater(this, "simpleclans-plus");
@@ -131,8 +135,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         return true;
                     }
 
-                    ClanMenu menu = new ClanMenu(this);
-                    menu.openMenu(p);
+                    clanMenu.openMenu(p);
                 }
 
                 case "invite" -> {

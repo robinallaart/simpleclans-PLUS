@@ -1,6 +1,6 @@
 name: simpleclans-PLUS
 main: simpleclans.simpleclans.SimpleclansPlugin
-version: 1.3.0
+version: 1.4.0
 api-version: 1.21
 author: [Robin] #My name has to stay here you can add your own name like this [Robin, Yourname]
 depend: [PlaceholderAPI]
@@ -22,6 +22,7 @@ commands:
       /clan chatmsg - Send a message to your clan.
       /clan kick <player> - Kick a player from your team.
       /clan list - Lists all clans.
+      /clan menu - opens a clan menu 
       /clan admin help - shows admin commands.
     aliases: [c]
     permission: simpleclans.use
