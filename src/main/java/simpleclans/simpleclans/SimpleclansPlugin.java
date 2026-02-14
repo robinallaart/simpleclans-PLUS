@@ -32,6 +32,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
     private final Map<UUID, Boolean> clanChatToggled = new HashMap<>();
     private final Map<String, FileConfiguration> languages = new HashMap<>();
+    
     @Override
     public void onEnable() {
         saveDefaultConfig();
@@ -72,9 +73,11 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                 player.sendMessage("§e/clan info [name] §7- View info about a clan.");
                 player.sendMessage("§e/clan promote <player> §7- Promote a member.");
                 player.sendMessage("§e/clan demote <player> §7- Demote a member.");
+                player.sendMessage("§e/clan kick <player> §7- Kick a player from your clan.");
                 player.sendMessage("§e/clan chatmsg §7- Send a single message in clanchat.");
                 player.sendMessage("§e/clan chat §7- Toggle clan chat.");
                 player.sendMessage("§e/clan list §7- shows a clan list.");
+                player.sendMessage("§e/clan menu §7- Open the clan menu.");
                 player.sendMessage("§e/clan update §7- Update to newest version.");
                 player.sendMessage("§6=======================================");
                 return true;
@@ -110,7 +113,6 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                 case "update" -> {
                     if (!player.hasPermission("simpleclans.admin")) {
                         player.sendMessage(getMessage("no_permission", Map.of()));
-
                         return true;
                     }
 
@@ -122,14 +124,15 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         player.sendMessage("§6[Simpleclan-PLUS] §aYou are already running the latest version!");
                     }
                 }
-                case "menu" -> {
-                                if (!(sender instanceof Player p)) {
-                                                sender.sendMessage(getMessage("only_players", Map.of()));
-                                                return true;
-                                }
 
-                                ClanMenu menu = new ClanMenu(this);
-                                menu.openMenu(p);
+                case "menu" -> {
+                    if (!(sender instanceof Player p)) {
+                        sender.sendMessage(getMessage("only_players", Map.of()));
+                        return true;
+                    }
+
+                    ClanMenu menu = new ClanMenu(this);
+                    menu.openMenu(p);
                 }
 
                 case "invite" -> {
@@ -149,17 +152,16 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         }
                         if (args.length < 2) {
                                 player.sendMessage(getMessage("clan_invite", Map.of("clan", clan)));
-
                                 return true;
                         }
                         Player target = Bukkit.getPlayerExact(args[1]);
                         if (target == null) {
-                                target.sendMessage(getMessage("player_not_found", Map.of("clan", clan)));
+                                player.sendMessage(getMessage("player_not_found", Map.of("clan", clan)));
                                 return true;
                         }
                         UUID targetId = target.getUniqueId();
                         if (getClanOf(targetId) != null) {
-                                target.sendMessage(getMessage("already_in_clan_player", Map.of("clan", clan)));
+                                player.sendMessage(getMessage("already_in_clan_player", Map.of("clan", clan)));
                                 return true;
                         }
 
@@ -177,7 +179,6 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         player.sendMessage(getMessage("invited_player", Map.of("player", target.getName(), "clan", clan)));
                         target.sendMessage(getMessage("invited_you", Map.of("clan", clan)));
                 }
-
 
                 case "join" -> {
                         if (!player.hasPermission("simpleclans.join")) {
@@ -227,7 +228,6 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
                         player.sendMessage(getMessage("joined_clan", Map.of("clan", clanName)));
                 }
-
 
                 case "leave" -> {
                         if (!player.hasPermission("simpleclans.leave")) {
@@ -281,7 +281,6 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     return true;
                 }
 
-
                 case "promote" -> {
                     if (!player.hasPermission("simpleclans.promote")) {
                         player.sendMessage(getMessage("clan_promote_usage", Map.of()));
@@ -295,6 +294,11 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     String role = getRoleOf(uuid);
                     if (!role.equalsIgnoreCase("LEADER") && !role.equalsIgnoreCase("CO-LEADER")) {
                         player.sendMessage(getMessage("no_permission", Map.of()));
+                        return true;
+                    }
+
+                    if (args.length < 2) {
+                        player.sendMessage(getMessage("clan_promote_usage", Map.of()));
                         return true;
                     }
 
@@ -325,6 +329,106 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     player.sendMessage(getMessage("promote_success", Map.of("player", target.getName(), "role", newRole)));
                     target.sendMessage(getMessage("promoted_to", Map.of("role", newRole)));
                 }
+
+                case "demote" -> {
+                    if (!player.hasPermission("simpleclans.demote")) {
+                        player.sendMessage(getMessage("clan_demote_usage", Map.of()));
+                        return true;
+                    }
+                    String clan = getClanOf(uuid);
+                    if (clan == null) {
+                        player.sendMessage(getMessage("not_in_clan", Map.of()));
+                        return true;
+                    }
+                    String role = getRoleOf(uuid);
+                    if (!role.equalsIgnoreCase("LEADER") && !role.equalsIgnoreCase("CO-LEADER")) {
+                        player.sendMessage(getMessage("no_permission", Map.of()));
+                        return true;
+                    }
+
+                    if (args.length < 2) {
+                        player.sendMessage(getMessage("clan_demote_usage", Map.of()));
+                        return true;
+                    }
+
+                    Player target = Bukkit.getPlayerExact(args[1]);
+                    if (target == null) {
+                        player.sendMessage(getMessage("player_not_found", Map.of()));
+                        return true;
+                    }
+                    UUID targetId = target.getUniqueId();
+                    if (!clan.equals(getClanOf(targetId))) {
+                        player.sendMessage(getMessage("not_in_your_clan", Map.of()));
+                        return true;
+                    }
+
+                    String targetRole = getRoleOf(targetId);
+                    String newRole = switch (targetRole.toUpperCase()) {
+                        case "CO-LEADER" -> "MEMBER";
+                        case "MEMBER" -> "RECRUIT";
+                        default -> null;
+                    };
+
+                    if (newRole == null) {
+                        player.sendMessage(getMessage("cannot_demote", Map.of()));
+                        return true;
+                    }
+
+                    addMemberToClan(targetId, clan, newRole);
+                    player.sendMessage(getMessage("demote_success", Map.of("player", target.getName(), "role", newRole)));
+                    target.sendMessage(getMessage("demoted_to", Map.of("role", newRole)));
+                }
+
+                case "kick" -> {
+                    if (!player.hasPermission("simpleclans.kick")) {
+                        player.sendMessage(getMessage("no_permission", Map.of()));
+                        return true;
+                    }
+                    String clan = getClanOf(uuid);
+                    if (clan == null) {
+                        player.sendMessage(getMessage("not_in_clan", Map.of()));
+                        return true;
+                    }
+                    String role = getRoleOf(uuid);
+                    if (!role.equalsIgnoreCase("LEADER") && !role.equalsIgnoreCase("CO-LEADER")) {
+                        player.sendMessage(getMessage("no_permission", Map.of()));
+                        return true;
+                    }
+                    
+                    if (args.length < 2) {
+                        player.sendMessage(getMessage("clan_kick_usage", Map.of()));
+                        return true;
+                    }
+                    
+                    Player target = Bukkit.getPlayerExact(args[1]);
+                    if (target == null) {
+                        player.sendMessage(getMessage("player_not_found", Map.of()));
+                        return true;
+                    }
+                    
+                    UUID targetId = target.getUniqueId();
+                    if (!clan.equals(getClanOf(targetId))) {
+                        player.sendMessage(getMessage("not_in_your_clan", Map.of()));
+                        return true;
+                    }
+                    
+                    String targetRole = getRoleOf(targetId);
+                    if (targetRole.equalsIgnoreCase("LEADER")) {
+                        player.sendMessage(getMessage("cannot_kick_leader", Map.of()));
+                        return true;
+                    }
+                    
+                    // Co-Leaders kunnen alleen Members en Recruits kicken
+                    if (role.equalsIgnoreCase("CO-LEADER") && targetRole.equalsIgnoreCase("CO-LEADER")) {
+                        player.sendMessage(getMessage("cannot_kick_coleader", Map.of()));
+                        return true;
+                    }
+                    
+                    addMemberToClan(targetId, null, null);
+                    player.sendMessage(getMessage("kicked_player", Map.of("player", target.getName(), "clan", clan)));
+                    target.sendMessage(getMessage("you_were_kicked", Map.of("clan", clan)));
+                }
+
                 case "disband" -> {
                     if (!player.hasPermission("simpleclans.disband")) {
                         player.sendMessage(getMessage("no_permission", Map.of()));
@@ -362,6 +466,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
                     player.sendMessage(getMessage("you_disbanded", Map.of("clan", clan)));
                 }
+
                 case "list" -> {
                     if (!player.hasPermission("simpleclans.list")) {
                         player.sendMessage(getMessage("no_permission", Map.of()));
@@ -391,6 +496,10 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         player.sendMessage(getMessage("not_in_clan", Map.of()));
                         return true;
                     }
+                    if (args.length < 2) {
+                        player.sendMessage(getMessage("chat_usage", Map.of()));
+                        return true;
+                    }
                     String msg = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
                     for (Map.Entry<UUID, String> member : getClanMembers(clan).entrySet()) {
                         Player target = Bukkit.getPlayer(member.getKey());
@@ -399,49 +508,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         }
                     }
                 }
-                case "demote" -> {
-                    if (!player.hasPermission("simpleclans.demote")) {
-                        player.sendMessage(getMessage("clan_demote_usage", Map.of()));
-                        return true;
-                    }
-                    String clan = getClanOf(uuid);
-                    if (clan == null) {
-                        player.sendMessage(getMessage("not_in_clan", Map.of()));
-                        return true;
-                    }
-                    String role = getRoleOf(uuid);
-                    if (!role.equalsIgnoreCase("LEADER") && !role.equalsIgnoreCase("CO-LEADER")) {
-                        player.sendMessage(getMessage("no_permission", Map.of()));
-                        return true;
-                    }
-
-                    Player target = Bukkit.getPlayerExact(args[1]);
-                    if (target == null) {
-                        player.sendMessage(getMessage("player_not_found", Map.of()));
-                        return true;
-                    }
-                    UUID targetId = target.getUniqueId();
-                    if (!clan.equals(getClanOf(targetId))) {
-                        player.sendMessage(getMessage("not_in_your_clan", Map.of()));
-                        return true;
-                    }
-
-                    String targetRole = getRoleOf(targetId);
-                    String newRole = switch (targetRole.toUpperCase()) {
-                        case "CO-LEADER" -> "MEMBER";
-                        case "MEMBER" -> "RECRUIT";
-                        default -> null;
-                    };
-
-                    if (newRole == null) {
-                        player.sendMessage(getMessage("cannot_demote", Map.of()));
-                        return true;
-                    }
-
-                    addMemberToClan(targetId, clan, newRole);
-                    player.sendMessage(getMessage("demote_success", Map.of("player", target.getName(), "role", newRole)));
-                    target.sendMessage(getMessage("demoted_to", Map.of("role", newRole)));
-                }
+                
                 case "admin" -> {
                     if (!player.hasPermission("simpleclans.admin")) {
                         player.sendMessage(getMessage("admin_no_perm", Map.of()));
@@ -469,7 +536,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                             String clan = args[3];
 
                             if (target == null) {
-                                target.sendMessage(getMessage("player_not_found", Map.of("clan", clan)));
+                                player.sendMessage(getMessage("player_not_found", Map.of("clan", clan)));
                                 return true;
                             }
 
@@ -489,6 +556,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                             player.sendMessage(getMessage("promote_success", Map.of("player", target.getName(), "role", newRole)));
                             target.sendMessage(getMessage("promoted_to", Map.of("role", newRole)));
                         }
+
                         case "purge" -> {
                             if (!player.hasPermission("simpleclans.admin.purge")) {
                                 player.sendMessage(getMessage("admin_no_perm", Map.of()));
@@ -518,11 +586,9 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                             String clan = args[2];
-
-                          
+                            
                             updateClanKills(clan, 0);
-
-                           
+                            
                             for (UUID memberUUID : getClanMembers(clan).keySet()) {
                                 addMemberToClan(memberUUID, clan, "RECRUIT");
                             }
@@ -531,36 +597,34 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         }
 
                         case "place" -> {
-                                if (!player.hasPermission("simpleclans.admin.place")) {
-                                                player.sendMessage(getMessage("admin_no_perm", Map.of()));
-                                                return true;
-                                }
+                            if (!player.hasPermission("simpleclans.admin.place")) {
+                                player.sendMessage(getMessage("admin_no_perm", Map.of()));
+                                return true;
+                            }
 
-                                if (args.length < 4) {
-                                                player.sendMessage(getMessage("admin_usage_place", Map.of()));
-                                                return true;
-                                }
+                            if (args.length < 4) {
+                                player.sendMessage(getMessage("admin_usage_place", Map.of()));
+                                return true;
+                            }
 
-                                Player target = Bukkit.getPlayerExact(args[2]);
-                                String clan = args[3];
-                                String role = args.length >= 5 ? args[4].toUpperCase() : "MEMBER";
+                            Player target = Bukkit.getPlayerExact(args[2]);
+                            String clan = args[3];
+                            String role = args.length >= 5 ? args[4].toUpperCase() : "MEMBER";
 
-                                if (target == null) {
-                                                target.sendMessage(getMessage("player_not_found", Map.of("clan", clan)));
-                                                return true;
-                                }
+                            if (target == null) {
+                                player.sendMessage(getMessage("player_not_found", Map.of("clan", clan)));
+                                return true;
+                            }
 
-                               
-                                if (!getAllClanNames().contains(clan)) {
-                                                player.sendMessage(getMessage("admin_clan_not_exist", Map.of("clan", clan)));
-                                                return true;
-                                }
+                            if (!getAllClanNames().contains(clan)) {
+                                player.sendMessage(getMessage("admin_clan_not_exist", Map.of("clan", clan)));
+                                return true;
+                            }
 
-                               
-                                addMemberToClan(target.getUniqueId(), clan, role);
+                            addMemberToClan(target.getUniqueId(), clan, role);
 
-                                player.sendMessage(getMessage("admin_place_success_player", Map.of("player", target.getName(),"clan", clan,"role", role)));
-                                target.sendMessage(getMessage("admin_place_success_target", Map.of("clan", clan,"role", role)));
+                            player.sendMessage(getMessage("admin_place_success_player", Map.of("player", target.getName(),"clan", clan,"role", role)));
+                            target.sendMessage(getMessage("admin_place_success_target", Map.of("clan", clan,"role", role)));
                         }
 
                         case "invite" -> {
@@ -667,6 +731,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                             player.sendMessage(getMessage("admin_kick_success", Map.of("player", target.getName(),"clan", clan)));
                             target.sendMessage(getMessage("admin_kick_target", Map.of("clan", clan)));
                         }
+
                         case "help" -> {
                             if (!player.hasPermission("simpleclans.admin")) {
                                 player.sendMessage(getMessage("admin_no_perm", Map.of()));
@@ -685,7 +750,6 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                             player.sendMessage("§e/clan admin reload §7- Reload the plugin configuration");
                             player.sendMessage("§6==============================");
                         }
-
 
                         case "disband" -> {
                             if (!player.hasPermission("simpleclans.admin.disband")) {
@@ -716,107 +780,104 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
                             player.sendMessage(getMessage("you_disbanded", Map.of("clan", clan)));
                         }
-
                         
                         default -> player.sendMessage(getMessage("admin_default", Map.of()));
                     }
                 }
+
                 default -> player.sendMessage(getMessage("default", Map.of()));
             }
 
             return true;
         });
+
         getCommand("clan").setTabCompleter((sender, command, alias, args) -> {
-                List<String> completions = new ArrayList<>();
+            List<String> completions = new ArrayList<>();
 
-                if (!(sender instanceof Player)) return completions;
+            if (!(sender instanceof Player)) return completions;
 
-                if (args.length == 1) {
+            if (args.length == 1) {
+                completions.addAll(Arrays.asList(
+                    "create", "invite", "join", "leave", "info", "promote", "demote", "kick", "disband",
+                    "help", "update", "list", "chat", "chatmsg", "admin", "menu"
+                ));
+            }
+
+            else if (args.length == 2) {
+                String sub = args[0].toLowerCase();
+                switch (sub) {
+                    case "invite", "promote", "demote", "kick" ->
+                        completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+                    case "join", "info", "disband" ->
+                        completions.addAll(getAllClanNames());
+                    case "admin" ->
                         completions.addAll(Arrays.asList(
-                                "create", "invite", "join", "leave", "info", "promote", "demote", "disband",
-                                "help", "update", "list", "chat", "chatmsg", "admin", "menu"
+                            "promote", "demote", "kick", "invite", "disband", "reset", "purge",
+                            "place", "reload", "help"
                         ));
                 }
+            }
 
-                else if (args.length == 2) {
-                        String sub = args[0].toLowerCase();
-                        switch (sub) {
-                                case "invite", "promote", "demote" ->
-                                        completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
-                                case "join", "info", "disband" ->
-                                        completions.addAll(getAllClanNames());
-                                case "admin" ->
-                                        completions.addAll(Arrays.asList(
-                                                "promote", "demote", "kick", "invite", "disband", "reset", "purge",
-                                                "place", "reload", "help"
-                                        ));
-                        }
+            else if (args.length == 3) {
+                String sub = args[0].toLowerCase();
+
+                if (sub.equals("admin")) {
+                    String adminSub = args[1].toLowerCase();
+                    switch (adminSub) {
+                        case "promote", "demote", "kick", "invite", "purge", "place" ->
+                            completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+                        case "disband", "reset" ->
+                            completions.addAll(getAllClanNames());
+                    }
                 }
+            }
 
-                else if (args.length == 3) {
-                        String sub = args[0].toLowerCase();
+            else if (args.length == 4) {
+                String sub = args[0].toLowerCase();
 
-                        if (sub.equals("admin")) {
-                                String adminSub = args[1].toLowerCase();
-                                switch (adminSub) {
-                                        case "promote", "demote", "kick", "invite", "purge", "place" ->
-                                                completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
-                                        case "disband", "reset" ->
-                                                completions.addAll(getAllClanNames());
-                                }
-                        }
+                if (sub.equals("admin")) {
+                    String adminSub = args[1].toLowerCase();
+                    switch (adminSub) {
+                        case "promote", "demote", "kick", "invite", "place", "reset" ->
+                            completions.addAll(getAllClanNames());
+                    }
                 }
+            }
 
-                else if (args.length == 4) {
-                        String sub = args[0].toLowerCase();
+            else if (args.length == 5) {
+                String sub = args[0].toLowerCase();
 
-                        if (sub.equals("admin")) {
-                                String adminSub = args[1].toLowerCase();
-                                switch (adminSub) {
-                                        case "promote", "demote", "kick", "invite", "place", "reset" ->
-                                                completions.addAll(getAllClanNames());
-                                }
-                        }
+                if (sub.equals("admin")) {
+                    String adminSub = args[1].toLowerCase();
+                    if (adminSub.equals("place")) {
+                        completions.addAll(Arrays.asList("LEADER", "CO-LEADER", "MEMBER", "RECRUIT"));
+                    }
                 }
+            }
 
-                else if (args.length == 5) {
-                        String sub = args[0].toLowerCase();
+            String lastArg = args[args.length - 1].toLowerCase();
+            completions.removeIf(s -> !s.toLowerCase().startsWith(lastArg));
 
-                        if (sub.equals("admin")) {
-                                String adminSub = args[1].toLowerCase();
-                                if (adminSub.equals("place")) {
-                                        completions.addAll(Arrays.asList("LEADER", "CO-LEADER", "MEMBER", "RECRUIT"));
-                                }
-                        }
-                }
-
-           
-                String lastArg = args[args.length - 1].toLowerCase();
-                completions.removeIf(s -> !s.toLowerCase().startsWith(lastArg));
-
-                return completions;
+            return completions;
         });
     }
+
     private void loadAllLanguageFiles() {
         File langFolder = new File(getDataFolder(), "languages");
         if (!langFolder.exists()) langFolder.mkdirs();
 
-        
         String[] builtInLangs = {"EN", "NL","CH", "SP", "HI", "AR", "BE", "PO", "RU", "JA","PU", "DE", "WU", "KO", "FR", "TE", "MA","TU", "TA", "VI", "UR", "KA", "GU", "OR", "BH","MI", "HA", "JI", "IN", "IT"};
 
         for (String lang : builtInLangs) {
             File langFile = new File(langFolder, lang + ".yml");
 
-            
             if (!langFile.exists() && getResource("languages/" + lang + ".yml") != null) {
                 saveResource("languages/" + lang + ".yml", false);
             }
 
-            
             if (langFile.exists()) {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(langFile);
 
-                
                 InputStream defaultStream = getResource("languages/EN.yml");
                 if (defaultStream != null) {
                     YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(
@@ -831,6 +892,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
             }
         }
     }
+
     public String getMessage(String path, Map<String, String> placeholders) {
         String msg = languageConfig.getString("messages." + path, "Message not found: " + path);
         if (msg == null) return "Message not found: " + path;
@@ -844,7 +906,8 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
 
     public String getLanguage() {
         return languageCode;
-    }   
+    }
+
     @Override
     public void onDisable() {
         getLogger().info("[Simpleclan-PLUS] ClanPlugin is disabled!");
@@ -863,6 +926,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
             e.printStackTrace();
         }
     }
+
     private void createTables() {
         try (Statement stmt = connection.createStatement()) {
             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS clans (" +
@@ -875,6 +939,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     "uuid TEXT PRIMARY KEY," +
                     "clan TEXT," +
                     "role TEXT)");
+
             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS clan_invites (" +
                     "target_uuid TEXT," +
                     "clan_name TEXT," +
@@ -884,6 +949,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
             e.printStackTrace();
         }
     }
+
     private void setLanguage(String langCode) {
         langCode = langCode.toUpperCase();
         if (languages.containsKey(langCode)) {
@@ -941,12 +1007,21 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         }
         return null;
     }
+
+    /**
+     * Get clan chat toggle status for a player
+     * @param uuid Player UUID
+     * @return true if clan chat is enabled, false otherwise
+     */
+    public boolean getClanChatStatus(UUID uuid) {
+        return clanChatToggled.getOrDefault(uuid, false);
+    }
+
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
 
-        
         if (!clanChatToggled.getOrDefault(uuid, false)) {
             return; 
         }
@@ -968,7 +1043,6 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
             }
         }
     }
-
 
     public void updateClanKills(String clan, int kills) {
         try (PreparedStatement ps = connection.prepareStatement(
@@ -992,6 +1066,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         }
         return 0;
     }
+
     public int getClanMemberCount(String clan) {
         try (PreparedStatement ps = connection.prepareStatement(
                 "SELECT COUNT(*) AS total FROM clan_members WHERE clan = ?")) {
@@ -1003,6 +1078,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         }
         return 0;
     }
+
     public int getOnlineClanMembers(String clan) {
         int count = 0;
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -1021,6 +1097,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         }
         return 1;
     }
+
     public Map<UUID, String> getClanMembers(String clan) {
         Map<UUID, String> members = new HashMap<>();
         try (PreparedStatement ps = connection.prepareStatement("SELECT uuid, role FROM clan_members WHERE clan = ?")) {
@@ -1034,6 +1111,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         }
         return members;
     }
+
     public String getClanLeader(String clan) {
         try (PreparedStatement ps = connection.prepareStatement(
                 "SELECT leader FROM clans WHERE name = ?")) {
@@ -1049,7 +1127,6 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         }
         return "None";
     }
-
 
     public List<String> getAllClanNames() {
         List<String> clans = new ArrayList<>();
