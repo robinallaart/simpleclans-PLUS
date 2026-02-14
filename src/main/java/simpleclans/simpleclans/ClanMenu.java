@@ -32,7 +32,7 @@ public class ClanMenu implements Listener {
         openMainMenu(player);
     }
 
-  
+
     private void openMainMenu(Player player) {
         String clan = plugin.getClanOf(player.getUniqueId());
         if (clan == null) {
@@ -44,10 +44,10 @@ public class ClanMenu implements Listener {
         Inventory menu = Bukkit.createInventory(null, 54, "§6§l⚔ " + clan + " Menu ⚔");
         playerMenus.put(player.getUniqueId(), MenuType.MAIN);
 
-     
+ 
         fillBorders(menu, createItem(Material.GRAY_STAINED_GLASS_PANE, " ", ""));
 
-        
+
         menu.setItem(13, createItem(Material.DIAMOND, 
             "§b§lClan Information",
             "§7Click to view detailed",
@@ -65,7 +65,7 @@ public class ClanMenu implements Listener {
                 ? "§e▸ Right Click: §fManage Roles" 
                 : ""));
 
-        
+
         if (role.equalsIgnoreCase("LEADER") || role.equalsIgnoreCase("CO-LEADER")) {
             menu.setItem(22, createItem(Material.WRITABLE_BOOK, 
                 "§e§lInvite Players",
@@ -76,7 +76,7 @@ public class ClanMenu implements Listener {
                 "§e▸ Click to open"));
         }
 
-  
+
         menu.setItem(24, createItem(Material.PAPER, 
             "§d§lClan Chat",
             "§7Toggle clan chat mode",
@@ -85,7 +85,6 @@ public class ClanMenu implements Listener {
             "",
             "§e▸ Click to toggle"));
 
-   
         if (role.equalsIgnoreCase("LEADER")) {
             menu.setItem(31, createItem(Material.REDSTONE_BLOCK, 
                 "§c§lClan Settings",
@@ -103,7 +102,6 @@ public class ClanMenu implements Listener {
                 "§e▸ Click to confirm"));
         }
 
-      
         if (player.hasPermission("simpleclans.admin")) {
             menu.setItem(49, createItem(Material.COMMAND_BLOCK, 
                 "§4§lAdmin Panel",
@@ -112,7 +110,6 @@ public class ClanMenu implements Listener {
                 "§e▸ Click to open"));
         }
 
-     
         menu.setItem(45, createItem(Material.RED_STAINED_GLASS_PANE, 
             "§c§lClose Menu", 
             "§7Click to close this menu"));
@@ -120,7 +117,7 @@ public class ClanMenu implements Listener {
         player.openInventory(menu);
     }
 
- 
+  
     private void openInfoMenu(Player player) {
         String clan = plugin.getClanOf(player.getUniqueId());
         if (clan == null) return;
@@ -144,28 +141,28 @@ public class ClanMenu implements Listener {
             "",
             "§7Kills needed: §f" + ((level * 5) - kills) + " more"));
 
-      
+     
         menu.setItem(13, createItem(Material.IRON_SWORD, 
             "§c§lTotal Kills",
             "§7Your clan has §c" + kills + " §7kills",
             "",
             "§7Keep fighting to level up!"));
 
-        
+    
         menu.setItem(15, createItem(Material.PLAYER_HEAD, 
             "§a§lMembers",
             "§7Total Members: §f" + memberCount,
             "§7Online: §a" + onlineMembers,
             "§7Offline: §c" + (memberCount - onlineMembers)));
 
-   
+      
         menu.setItem(20, createHeadItem(leader, 
             "§e§lClan Leader",
             "§7Leader: §f" + leader,
             "",
             "§7The founder of " + clan));
 
-    
+   
         menu.setItem(24, createItem(Material.BOOK, 
             "§d§lStatistics",
             "§7Detailed clan statistics",
@@ -173,7 +170,7 @@ public class ClanMenu implements Listener {
             "§7Average Kills: §f" + (memberCount > 0 ? kills / memberCount : 0),
             "§7Kills per Online Member: §f" + (onlineMembers > 0 ? kills / onlineMembers : 0)));
 
-        
+      
         menu.setItem(49, createItem(Material.ARROW, 
             "§e§lBack to Main Menu", 
             "§7Return to the main menu"));
@@ -181,7 +178,7 @@ public class ClanMenu implements Listener {
         player.openInventory(menu);
     }
 
-  
+
     private void openMembersMenu(Player player, int page) {
         String clan = plugin.getClanOf(player.getUniqueId());
         if (clan == null) return;
@@ -198,7 +195,7 @@ public class ClanMenu implements Listener {
         Map<UUID, String> members = plugin.getClanMembers(clan);
         List<Map.Entry<UUID, String>> memberList = new ArrayList<>(members.entrySet());
 
-       
+
         memberList.sort((a, b) -> {
             int priorityA = getRolePriority(a.getValue());
             int priorityB = getRolePriority(b.getValue());
@@ -208,7 +205,7 @@ public class ClanMenu implements Listener {
         int startIndex = page * 28;
         int endIndex = Math.min(startIndex + 28, memberList.size());
 
-      
+
         int slot = 10;
         for (int i = startIndex; i < endIndex; i++) {
             if (slot == 17 || slot == 26 || slot == 35) slot += 2; 
@@ -237,7 +234,7 @@ public class ClanMenu implements Listener {
             slot++;
         }
 
-     
+  
         if (page > 0) {
             menu.setItem(45, createItem(Material.ARROW, 
                 "§e§lPrevious Page", 
@@ -250,7 +247,7 @@ public class ClanMenu implements Listener {
                 "§7Go to page " + (page + 2)));
         }
 
-     
+
         menu.setItem(49, createItem(Material.BARRIER, 
             "§c§lBack to Main Menu", 
             "§7Return to the main menu"));
@@ -298,14 +295,13 @@ public class ClanMenu implements Listener {
             "§7Invites expire after 5 minutes",
             "§7Click on a player to invite them"));
 
-   
+
         menu.setItem(45, createItem(Material.ARROW, 
             "§c§lBack to Main Menu", 
             "§7Return to the main menu"));
 
         player.openInventory(menu);
     }
-
 
     private void openSettingsMenu(Player player) {
         String clan = plugin.getClanOf(player.getUniqueId());
@@ -322,7 +318,7 @@ public class ClanMenu implements Listener {
 
         fillBorders(menu, createItem(Material.RED_STAINED_GLASS_PANE, " ", ""));
 
-       
+  
         menu.setItem(22, createItem(Material.TNT, 
             "§c§lDisband Clan",
             "§7Permanently delete your clan",
@@ -333,14 +329,14 @@ public class ClanMenu implements Listener {
             "",
             "§c▸ Click to confirm"));
 
-      
+ 
         menu.setItem(20, createItem(Material.NAME_TAG, 
             "§e§lClan Tag §7(Coming Soon)",
             "§7Change your clan's tag",
             "",
             "§7Currently: §f[" + clan + "]"));
 
-       
+
         menu.setItem(24, createItem(Material.BOOK, 
             "§e§lClan Description §7(Coming Soon)",
             "§7Set your clan's description",
@@ -348,7 +344,7 @@ public class ClanMenu implements Listener {
             "§7Let others know what",
             "§7your clan is about!"));
 
-        
+
         menu.setItem(49, createItem(Material.ARROW, 
             "§e§lBack to Main Menu", 
             "§7Return to the main menu"));
@@ -356,7 +352,7 @@ public class ClanMenu implements Listener {
         player.openInventory(menu);
     }
 
-    
+
     private void openAdminMenu(Player player) {
         if (!player.hasPermission("simpleclans.admin")) {
             player.sendMessage(plugin.getMessage("no_permission", Map.of()));
@@ -368,7 +364,7 @@ public class ClanMenu implements Listener {
 
         fillBorders(menu, createItem(Material.BLACK_STAINED_GLASS_PANE, " ", ""));
 
-        
+
         menu.setItem(11, createItem(Material.BOOK, 
             "§e§lView All Clans",
             "§7See a list of all clans",
@@ -377,14 +373,13 @@ public class ClanMenu implements Listener {
             "",
             "§e▸ Click to view"));
 
-       
         menu.setItem(13, createItem(Material.PLAYER_HEAD, 
             "§a§lManage Players",
             "§7Add/Remove players from clans",
             "",
             "§e▸ Click to open"));
 
-    
+
         menu.setItem(15, createItem(Material.BARRIER, 
             "§c§lReset Clan Data",
             "§7Reset a clan's stats",
@@ -393,7 +388,7 @@ public class ClanMenu implements Listener {
             "",
             "§c▸ Click to select clan"));
 
-      
+
         menu.setItem(20, createItem(Material.TNT, 
             "§4§lForce Disband",
             "§7Disband any clan",
@@ -402,14 +397,14 @@ public class ClanMenu implements Listener {
             "",
             "§4▸ Click to select clan"));
 
-   
+
         menu.setItem(24, createItem(Material.COMMAND_BLOCK, 
             "§b§lReload Config",
             "§7Reload plugin configuration",
             "",
             "§e▸ Click to reload"));
 
-    
+
         menu.setItem(49, createItem(Material.ARROW, 
             "§e§lBack to Main Menu", 
             "§7Return to the main menu"));
@@ -508,7 +503,6 @@ public class ClanMenu implements Listener {
             return;
         }
 
-    
         if (clicked.getType() == Material.PLAYER_HEAD) {
             String targetName = itemName.replace("§a", "").replace("§7", "");
             Player target = Bukkit.getPlayerExact(targetName);
@@ -524,7 +518,6 @@ public class ClanMenu implements Listener {
                         player.performCommand("clan demote " + targetName);
                     } else if (clickType.isShiftClick() && clickType.isRightClick()) {
                         player.closeInventory();
-                    
                         player.sendMessage("§c§l[!] §cKick feature coming soon! Use §e/clan admin kick " + targetName + " " + clan);
                     }
                 }
@@ -608,12 +601,10 @@ public class ClanMenu implements Listener {
 
     private void fillBorders(Inventory inv, ItemStack item) {
         int size = inv.getSize();
-        // Top and bottom rows
         for (int i = 0; i < 9; i++) {
             inv.setItem(i, item);
             inv.setItem(size - 9 + i, item);
         }
-        // Left and right columns
         for (int i = 9; i < size - 9; i += 9) {
             inv.setItem(i, item);
             inv.setItem(i + 8, item);
@@ -641,6 +632,6 @@ public class ClanMenu implements Listener {
     }
 
     private boolean getChatStatus(Player player) {
-        return false;
+        return plugin.getClanChatStatus(player.getUniqueId());
     }
 }
