@@ -931,7 +931,9 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     "name TEXT PRIMARY KEY," +
                     "leader TEXT," +
                     "kills INTEGER DEFAULT 0," +
-                    "level INTEGER DEFAULT 1)");
+                    "level INTEGER DEFAULT 1," +
+                    "tag TEXT DEFAULT ''," +
+                    "description TEXT DEFAULT '')");
 
             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS clan_members (" +
                     "uuid TEXT PRIMARY KEY," +
@@ -943,6 +945,10 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                     "clan_name TEXT," +
                     "inviter_uuid TEXT," +
                     "timestamp INTEGER DEFAULT (strftime('%s','now')))");
+
+            // Migrate existing databases that don't have tag/description yet
+            try { stmt.executeUpdate("ALTER TABLE clans ADD COLUMN tag TEXT DEFAULT ''"); } catch (SQLException ignored) {}
+            try { stmt.executeUpdate("ALTER TABLE clans ADD COLUMN description TEXT DEFAULT ''"); } catch (SQLException ignored) {}
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -1142,6 +1148,95 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
             e.printStackTrace();
         }
         return "None";
+    }
+
+    public String getClanTag(String clan) {
+        try (PreparedStatement ps = connection.prepareStatement("SELECT tag FROM clans WHERE name = ?")) {
+            ps.setString(1, clan);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                String tag = rs.getString("tag");
+                return (tag != null && !tag.isEmpty()) ? tag : clan;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return clan;
+    }
+
+    public void setClanTag(String clan, String tag) {
+        try (PreparedStatement ps = connection.prepareStatement("UPDATE clans SET tag = ? WHERE name = ?")) {
+            ps.setString(1, tag);
+            ps.setString(2, clan);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getClanDescription(String clan) {
+        try (PreparedStatement ps = connection.prepareStatement("SELECT description FROM clans WHERE name = ?")) {
+            ps.setString(1, clan);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                String desc = rs.getString("description");
+                return (desc != null && !desc.isEmpty()) ? desc : "No description set.";
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "No description set.";
+    }
+
+    public void setClanDescription(String clan, String description) {
+        try (PreparedStatement ps = connection.prepareStatement("UPDATE clans SET description = ? WHERE name = ?")) {
+            ps.setString(1, description);
+            ps.setString(2, clan);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void resetClanData(String clan) {
+        updateClanKills(clan, 0);
+        try (PreparedStatement ps = connection.prepareStatement(
+                "UPDATE clans SET level = 1 WHERE name = ?")) {
+            ps.setString(1, clan);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // Reset all non-leader members to RECRUIT
+        Map<UUID, String> members = getClanMembers(clan);
+        for (Map.Entry<UUID, String> entry : members.entrySet()) {
+            if (!entry.getValue().equalsIgnoreCase("LEADER")) {
+                addMemberToClan(entry.getKey(), clan, "RECRUIT");
+            }
+        }
+    }
+
+    public void forceDisbandClan(String clan) {
+        // Notify online members before removing them
+        for (UUID uuid : getClanMembers(clan).keySet()) {
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null) {
+                p.sendMessage(getMessage("you_disbanded", Map.of("clan", clan)));
+            }
+        }
+        try (PreparedStatement ps = connection.prepareStatement("DELETE FROM clans WHERE name = ?")) {
+            ps.setString(1, clan);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        try (PreparedStatement ps = connection.prepareStatement(
+                "UPDATE clan_members SET clan = NULL, role = NULL WHERE clan = ?")) {
+            ps.setString(1, clan);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public List<String> getAllClanNames() {
