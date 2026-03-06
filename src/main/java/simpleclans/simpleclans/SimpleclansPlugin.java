@@ -130,12 +130,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                 }
 
                 case "menu" -> {
-                    if (!(sender instanceof Player p)) {
-                        sender.sendMessage(getMessage("only_players", Map.of()));
-                        return true;
-                    }
-
-                    clanMenu.openMenu(p);
+                    clanMenu.openMenu(player);
                 }
 
                 case "invite" -> {
@@ -242,7 +237,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                                 player.sendMessage(getMessage("not_in_clan", Map.of()));
                                 return true;
                         }
-                        addMemberToClan(uuid, null, null);
+                        removeMemberFromClan(uuid);
                         player.sendMessage(getMessage("left_clan", Map.of("clan", clan)));
                 }
 
@@ -427,7 +422,7 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         return true;
                     }
                     
-                    addMemberToClan(targetId, null, null);
+                    removeMemberFromClan(targetId);
                     player.sendMessage(getMessage("kicked_player", Map.of("player", target.getName(), "clan", clan)));
                     target.sendMessage(getMessage("you_were_kicked", Map.of("clan", clan)));
                 }
@@ -987,6 +982,24 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Fully removes a player's clan membership row from the database.
+     * Prefer this over addMemberToClan(uuid, null, null) to avoid orphan rows.
+     */
+    public void removeMemberFromClan(UUID uuid) {
+        try (PreparedStatement ps = connection.prepareStatement(
+                "DELETE FROM clan_members WHERE uuid = ?")) {
+            ps.setString(1, uuid.toString());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public ClanMenu getClanMenu() {
+        return clanMenu;
     }
 
     public String getClanOf(UUID uuid) {

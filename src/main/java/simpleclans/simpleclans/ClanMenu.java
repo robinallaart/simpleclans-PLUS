@@ -231,8 +231,12 @@ public class ClanMenu implements Listener {
                 lore.add("§c▸ Shift+Right Click: §4Kick");
             }
 
-            menu.setItem(slot, createHeadItem(member.getName(), 
-                (isOnline ? "§a" : "§7") + member.getName(),
+            // Hidden UUID tag so we can resolve offline players on click
+            lore.add("§0UUID:" + memberUUID);
+
+            String displayName = member.getName() != null ? member.getName() : memberUUID.toString();
+            menu.setItem(slot, createHeadItem(displayName,
+                (isOnline ? "§a" : "§7") + displayName,
                 lore.toArray(new String[0])));
 
             slot++;
@@ -556,65 +560,90 @@ public class ClanMenu implements Listener {
             return;
         }
 
-     
-        if (clicked.getType() == Material.PLAYER_HEAD) {
-            String targetName = itemName.replace("§a", "").replace("§7", "").trim();
-            Player target = Bukkit.getPlayerExact(targetName);
+        if (clicked.getType() != Material.PLAYER_HEAD) return;
 
-            if (target != null && !target.getUniqueId().equals(player.getUniqueId())) {
-                String role = plugin.getRoleOf(player.getUniqueId());
-                if (role.equalsIgnoreCase("LEADER") || role.equalsIgnoreCase("CO-LEADER")) {
-                    player.closeInventory();
-                    
-                    if (clickType.isLeftClick()) {
-                   
-                        String targetRole = plugin.getRoleOf(target.getUniqueId());
-                        String newRole = switch (targetRole.toUpperCase()) {
-                            case "RECRUIT" -> "MEMBER";
-                            case "MEMBER" -> "CO-LEADER";
-                            default -> null;
-                        };
+        // Resolve the target by UUID stored in the hidden lore tag — works for online AND offline members
+        UUID targetUUID = getUUIDFromLore(clicked);
+        if (targetUUID == null || targetUUID.equals(player.getUniqueId())) return;
 
-                        if (newRole == null) {
-                            player.sendMessage(plugin.getMessage("cannot_promote", Map.of()));
-                        } else {
-                            plugin.addMemberToClan(target.getUniqueId(), clan, newRole);
-                            player.sendMessage(plugin.getMessage("promote_success", Map.of("player", target.getName(), "role", newRole)));
-                            target.sendMessage(plugin.getMessage("promoted_to", Map.of("role", newRole)));
-                        }
-                    } else if (clickType.isRightClick() && !clickType.isShiftClick()) {
-                  
-                        String targetRole = plugin.getRoleOf(target.getUniqueId());
-                        String newRole = switch (targetRole.toUpperCase()) {
-                            case "CO-LEADER" -> "MEMBER";
-                            case "MEMBER" -> "RECRUIT";
-                            default -> null;
-                        };
+        String role = plugin.getRoleOf(player.getUniqueId());
+        if (!role.equalsIgnoreCase("LEADER") && !role.equalsIgnoreCase("CO-LEADER")) return;
 
-                        if (newRole == null) {
-                            player.sendMessage(plugin.getMessage("cannot_demote", Map.of()));
-                        } else {
-                            plugin.addMemberToClan(target.getUniqueId(), clan, newRole);
-                            player.sendMessage(plugin.getMessage("demote_success", Map.of("player", target.getName(), "role", newRole)));
-                            target.sendMessage(plugin.getMessage("demoted_to", Map.of("role", newRole)));
-                        }
-                    } else if (clickType.isShiftClick() && clickType.isRightClick()) {
-                     
-                        String targetRole = plugin.getRoleOf(target.getUniqueId());
-                        
-                        if (targetRole.equalsIgnoreCase("LEADER")) {
-                            player.sendMessage(plugin.getMessage("cannot_kick_leader", Map.of()));
-                        } else if (role.equalsIgnoreCase("CO-LEADER") && targetRole.equalsIgnoreCase("CO-LEADER")) {
-                            player.sendMessage(plugin.getMessage("cannot_kick_coleader", Map.of()));
-                        } else {
-                            plugin.addMemberToClan(target.getUniqueId(), null, null);
-                            player.sendMessage(plugin.getMessage("kicked_player", Map.of("player", target.getName(), "clan", clan)));
-                            target.sendMessage(plugin.getMessage("you_were_kicked", Map.of("clan", clan)));
-                        }
-                    }
+        String targetRole = plugin.getRoleOf(targetUUID);
+        if (targetRole == null) return;
+
+        OfflinePlayer targetOffline = Bukkit.getOfflinePlayer(targetUUID);
+        String targetName = targetOffline.getName() != null ? targetOffline.getName() : targetUUID.toString();
+        Player targetOnline = Bukkit.getPlayer(targetUUID); // null if offline
+
+        player.closeInventory();
+
+        if (clickType.isShiftClick() && clickType.isRightClick()) {
+            // Kick — works for online and offline members
+            if (targetRole.equalsIgnoreCase("LEADER")) {
+                player.sendMessage(plugin.getMessage("cannot_kick_leader", Map.of()));
+            } else if (role.equalsIgnoreCase("CO-LEADER") && targetRole.equalsIgnoreCase("CO-LEADER")) {
+                player.sendMessage(plugin.getMessage("cannot_kick_coleader", Map.of()));
+            } else {
+                plugin.removeMemberFromClan(targetUUID);
+                player.sendMessage(plugin.getMessage("kicked_player", Map.of("player", targetName, "clan", clan)));
+                if (targetOnline != null) {
+                    targetOnline.sendMessage(plugin.getMessage("you_were_kicked", Map.of("clan", clan)));
+                }
+            }
+        } else if (clickType.isLeftClick() && !clickType.isShiftClick()) {
+            // Promote — target must be online to receive confirmation message, but the DB update always works
+            String newRole = switch (targetRole.toUpperCase()) {
+                case "RECRUIT" -> "MEMBER";
+                case "MEMBER" -> "CO-LEADER";
+                default -> null;
+            };
+            if (newRole == null) {
+                player.sendMessage(plugin.getMessage("cannot_promote", Map.of()));
+            } else {
+                plugin.addMemberToClan(targetUUID, clan, newRole);
+                player.sendMessage(plugin.getMessage("promote_success", Map.of("player", targetName, "role", newRole)));
+                if (targetOnline != null) {
+                    targetOnline.sendMessage(plugin.getMessage("promoted_to", Map.of("role", newRole)));
+                }
+            }
+        } else if (clickType.isRightClick() && !clickType.isShiftClick()) {
+            // Demote
+            String newRole = switch (targetRole.toUpperCase()) {
+                case "CO-LEADER" -> "MEMBER";
+                case "MEMBER" -> "RECRUIT";
+                default -> null;
+            };
+            if (newRole == null) {
+                player.sendMessage(plugin.getMessage("cannot_demote", Map.of()));
+            } else {
+                plugin.addMemberToClan(targetUUID, clan, newRole);
+                player.sendMessage(plugin.getMessage("demote_success", Map.of("player", targetName, "role", newRole)));
+                if (targetOnline != null) {
+                    targetOnline.sendMessage(plugin.getMessage("demoted_to", Map.of("role", newRole)));
                 }
             }
         }
+    }
+
+    /**
+     * Reads the hidden §0UUID:<uuid> tag written into member item lore.
+     * Returns null if not found or malformed.
+     */
+    private UUID getUUIDFromLore(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return null;
+        List<String> lore = item.getItemMeta().getLore();
+        if (lore == null) return null;
+        for (String line : lore) {
+            if (line.startsWith("§0UUID:")) {
+                try {
+                    return UUID.fromString(line.substring(7));
+                } catch (IllegalArgumentException ignored) {
+                    return null;
+                }
+            }
+        }
+        return null;
     }
 
     private void handleInvitesMenuClick(Player player, ItemStack clicked) {
@@ -689,7 +718,7 @@ public class ClanMenu implements Listener {
             meta.setDisplayName(name);
             List<String> loreList = new ArrayList<>();
             for (String line : lore) {
-                if (!line.isEmpty() || loreList.size() > 0) {
+                if (!line.isEmpty() || !loreList.isEmpty()) {
                     loreList.add(line);
                 }
             }
@@ -703,11 +732,14 @@ public class ClanMenu implements Listener {
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         if (meta != null) {
-            meta.setOwningPlayer(Bukkit.getOfflinePlayer(playerName));
+            // playerName may be null for OfflinePlayer who has never logged in
+            if (playerName != null) {
+                meta.setOwningPlayer(Bukkit.getOfflinePlayer(playerName));
+            }
             meta.setDisplayName(displayName);
             List<String> loreList = new ArrayList<>();
             for (String line : lore) {
-                if (!line.isEmpty() || loreList.size() > 0) {
+                if (!line.isEmpty() || !loreList.isEmpty()) {
                     loreList.add(line);
                 }
             }
