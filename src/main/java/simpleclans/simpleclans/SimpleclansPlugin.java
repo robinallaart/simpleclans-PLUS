@@ -10,6 +10,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
@@ -1063,6 +1064,20 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                 target.sendMessage("§6[Clan] §e" + player.getName() + "§f: " + msg);
             }
         }
+    }
+
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        Player victim = event.getEntity();
+        Player killer = victim.getKiller();
+        if (killer == null) return;
+        if (killer.getUniqueId().equals(victim.getUniqueId())) return;
+
+        String killerClan = getClanOf(killer.getUniqueId());
+        if (killerClan == null) return;
+
+        int currentKills = getClanKills(killerClan);
+        updateClanKills(killerClan, currentKills + 1);
     }
 
     public void updateClanKills(String clan, int kills) {
