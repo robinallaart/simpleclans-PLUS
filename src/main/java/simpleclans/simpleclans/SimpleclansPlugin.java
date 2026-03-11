@@ -114,20 +114,6 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                         player.sendMessage(getMessage("clan_created", Map.of("clan", clanName)));
                 }
 
-                case "update" -> {
-                    if (!player.hasPermission("simpleclans.admin")) {
-                        player.sendMessage(getMessage("no_permission", Map.of()));
-                        return true;
-                    }
-
-                    if (updater.isUpdateAvailable()) {
-                        player.sendMessage("§6[Simpleclan-PLUS] §eDownloading latest update...");
-                        updater.downloadLatestUpdate();
-                        player.sendMessage("§6[Simpleclan-PLUS] §aUpdate downloaded! It will be installed on the next restart.");
-                    } else {
-                        player.sendMessage("§6[Simpleclan-PLUS] §aYou are already running the latest version!");
-                    }
-                }
 
                 case "menu" -> {
                     clanMenu.openMenu(player);
@@ -554,7 +540,20 @@ public class SimpleclansPlugin extends JavaPlugin implements Listener {
                             player.sendMessage(getMessage("promote_success", Map.of("player", target.getName(), "role", newRole)));
                             target.sendMessage(getMessage("promoted_to", Map.of("role", newRole)));
                         }
+                        case "update" -> {
+                            if (!player.hasPermission("simpleclans.admin")) {
+                                player.sendMessage(getMessage("no_permission", Map.of()));
+                                return true;
+                            }
 
+                            if (updater.isUpdateAvailable()) {
+                                player.sendMessage("§6[Simpleclan-PLUS] §eDownloading latest update...");
+                                updater.downloadLatestUpdate();
+                                player.sendMessage("§6[Simpleclan-PLUS] §aUpdate downloaded! It will be installed on the next restart.");
+                            } else {
+                                player.sendMessage("§6[Simpleclan-PLUS] §aYou are already running the latest version!");
+                            }
+                        }
                         case "purge" -> {
                             if (!player.hasPermission("simpleclans.admin.purge")) {
                                 player.sendMessage(getMessage("admin_no_perm", Map.of()));
