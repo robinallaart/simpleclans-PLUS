@@ -357,7 +357,7 @@ public class ClanMenu implements Listener {
             "§7Change your clan's display tag",
             "",
             "§7Currently: §f[" + tag + "]",
-            "§7Max 6 chars, letters & numbers only",
+            "§7Max 10 chars, letters & numbers only",
             "",
             "§e▸ Click to change"));
 
@@ -867,8 +867,8 @@ public class ClanMenu implements Listener {
             case "TAG" -> {
                 String clan = plugin.getClanOf(player.getUniqueId());
                 if (clan == null) { player.sendMessage("§c[!] You are not in a clan."); return; }
-                if (msg.length() > 6 || !msg.matches("[a-zA-Z0-9]+")) {
-                    player.sendMessage("§c[!] Invalid tag. Max 6 chars, letters and numbers only.");
+                if (msg.length() > 10 || !msg.matches("[a-zA-Z0-9]+")) {
+                    player.sendMessage("§c[!] Invalid tag. Max 10 chars, letters and numbers only.");
                     return;
                 }
                 String finalTag = msg.toUpperCase();
